@@ -14,7 +14,7 @@ python3 - << 'EOF'
 import re, os
 company = """$company"""
 type_ = """$type"""
-slug = company.lower().replace('+', '_plus').replace('&', '_and')
+slug = company.lower().replace('+', '_plus').replace('&', '_and_')
 slug = re.sub(r'[^a-z0-9]+', '_', slug).strip('_')
 os.makedirs(f'analyses/{slug}', exist_ok=True)
 with open('analyses/.current', 'w') as f:

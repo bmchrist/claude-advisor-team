@@ -6,6 +6,9 @@ reference (pipeline stages, file formats, methodology), see `CLAUDE.md`.
 ## Status
 
 Pipeline fully implemented as skills (`/research` through `/executive`).
+`/ingest-materials` (data room ingestion, see item 3) is also implemented;
+the per-stage manifest-reading behavior it enables (RC/advisors/Bull/Bear) is
+still pending.
 
 ## Planned changes (next iteration)
 
@@ -79,6 +82,54 @@ existing `00_deal_materials/` pattern used for Quaise (`pitch_deck_digest.md`
   is the single source of routing truth, not folder naming — no need to
   generalize folder names like `financial_exhibits/` to match advisor domains.
 
+**Ingestion (`/ingest-materials` skill):**
+
+A new pipeline pre-stage, separate from RC and from advisor roles. Run before
+`/research` against a folder of raw uploads (PDF, XLSX, PPTX, images, etc.);
+produces the digest + manifest + exhibit images described above.
+
+- [x] New skill `/ingest-materials [company-or-slug]`, model
+      `claude-opus-4-6` — accuracy and judgment (narrative vs. exhibit, simple
+      vs. complex table) matter more than cost for this one-time-per-deal step.
+      Implemented at `.claude/skills/ingest-materials/SKILL.md`
+- [x] Input: raw files dropped in `analyses/{slug}/00_deal_materials/raw/` —
+      PDFs, Excel workbooks, PowerPoint decks, images, etc.
+- [x] Output: `materials_digest.md`, `manifest.md`, and extracted exhibit
+      images written to `00_deal_materials/exhibits/`, per the conventions
+      above (existing `financial_exhibits/` for quaise_energy is left as-is —
+      manifest paths are what matter, not folder naming)
+- [x] PDF handling (using the `pdf` skill): split by page —
+      narrative/strategy pages get summarized into `materials_digest.md`;
+      chart/table/financial pages get rendered to images under
+      `00_deal_materials/exhibits/` and added as rows to `manifest.md` with a
+      description and proposed `route_to`
+- [x] Excel handling (using the `xlsx` skill): simple tabular data gets
+      transcribed as markdown tables directly into `materials_digest.md`;
+      complex or visually-formatted models (multi-tab, heavy formatting, charts)
+      get rendered to images and added to `manifest.md` instead
+- [x] Other formats (PPTX, standalone images, Word docs) get the same
+      narrative-vs-exhibit triage as PDFs
+- [x] `route_to` values are a first-pass suggestion by `/ingest-materials`
+      (e.g. financial models → Investment Advisor, technical diagrams →
+      Science Advisor) — Ben can hand-edit `manifest.md` afterward to correct
+      routing before running `/research`
+- [x] This resolves the README's "(this is currently not accurate)" flag on
+      "Adding deal materials" — `README.md` now documents the
+      `/ingest-materials` → review manifest → `/research` flow
+- [x] Optional `source` argument (`/ingest-materials "Company" <path>`) —
+      copies files from an arbitrary local path (file or folder, recursive)
+      into `analyses/{slug}/00_deal_materials/raw/` before processing, so Ben
+      doesn't need to know the slug or create folders by hand. Without
+      `source`, the skill still self-bootstraps: first run creates `raw/` and
+      reports the path/slug for manual file placement
+- [ ] Not yet implemented: `/ingest-materials` doesn't touch
+      `analyses/.current` / `.meta` (consistent with item 1's direction —
+      it derives the slug itself from the `company-or-slug` argument). Once
+      item 1 lands, confirm this stays consistent
+- [ ] Test `/ingest-materials` end-to-end against a real set of raw materials
+      (e.g. the Quaise deck) once available, and sanity-check the
+      digest/manifest output quality
+
 **Per-stage behavior:**
 - [ ] RC: if `00_deal_materials/` exists, read `materials_digest.md` (as
       today) and fold it into Sections 1-3 as appropriate; note the
@@ -101,17 +152,17 @@ existing `00_deal_materials/` pattern used for Quaise (`pitch_deck_digest.md`
       actually matches the source
 
 **Open items / decisions:**
-- [ ] Who/what creates the digest + manifest? Today's Quaise materials were
-      hand-curated before `/research` ran. Options: keep as a manual/
-      Claude-assisted prep step per analysis, or formalize as a new skill
-      (e.g. `/ingest-materials`) that takes raw uploads and produces digest +
-      manifest + exhibit images
-- [ ] Chart/table-heavy PDFs need to become images before any of this works
-      (Quaise's `financial_exhibits/*.png` were extracted by hand) — same open
-      question as section 2's ingestion note, likely resolved together
-- [ ] Update `CLAUDE.md`'s "Output structure" section to document the digest +
-      manifest convention and the `[DATA ROOM]` tag
-- [ ] Update `README.md`'s "Adding deal materials" section once this lands
+- [x] Who/what creates the digest + manifest? Resolved — a new
+      `/ingest-materials` skill (Opus), described above. Today's Quaise
+      materials remain hand-curated as a reference example; new analyses go
+      through `/ingest-materials`
+- [x] Chart/table-heavy PDFs need to become images before any of this works —
+      handled by `/ingest-materials`'s PDF page-splitting via the `pdf` skill
+- [ ] Update `CLAUDE.md`'s "Output structure", "Pipeline stages", and "Models"
+      sections to document the digest + manifest convention, the
+      `[DATA ROOM]` tag, and the new `/ingest-materials` stage
+- [ ] Update `README.md`'s "Adding deal materials" section once this lands —
+      the ingestion step makes the "automatically picked up" claim accurate
 
 ## Open issues
 - JSON output from Executive may need prompt refinement if it doesn't parse

@@ -57,19 +57,34 @@ briefings for downstream stages. `05_executive_report.html` is the
 self-contained, shareable summary.
 
 ## Adding deal materials (data rooms, pitch decks, etc.)
-(this is currently not accurate)
-If you have non-public materials for a deal (pitch deck, financial exhibits,
-SPV/legal docs), add them under `analyses/<slug>/00_deal_materials/` before
-running `/research`:
 
-- A prose digest of narrative content (e.g. `pitch_deck_digest.md`)
-- Deal terms (e.g. `spv_deal_terms.md`)
-- Chart/table-heavy content as images (e.g. `financial_exhibits/*.png`) — the
-  Investment Advisor reads these directly
+If you have non-public materials for a deal (pitch deck, financial model,
+SPV/legal docs), process them before running `/research`:
 
-`/research` and the advisors pick these up automatically. See
-`projectplan.md` for planned improvements (a routing manifest and
-`[DATA ROOM]` evidence tagging).
+1. Run `/ingest-materials "Company Name" <path-to-folder-or-file>` — pass the
+   path to wherever the raw files currently live (e.g. a Downloads folder or
+   a single PDF). This copies them into
+   `analyses/<slug>/00_deal_materials/raw/` and processes them in one step;
+   you don't need to know the slug or create any folders yourself.
+
+   (Alternatively, run `/ingest-materials "Company Name"` with no path first —
+   it creates `analyses/<slug>/00_deal_materials/raw/` and tells you the exact
+   path and slug. Drop files in by hand, then run the same command again.)
+
+2. The skill produces:
+   - `materials_digest.md` — a prose digest of narrative/strategic content
+   - `manifest.md` — a routing table for charts, tables, and other exhibits,
+     with a suggested advisor for each (Science / Investment / Political)
+   - `exhibits/` — the extracted chart/table images referenced by the manifest
+3. Review `manifest.md` and adjust the routing if needed
+4. Run `/research` as usual — it picks up `materials_digest.md`
+   automatically, and advisors consult `manifest.md` for exhibits routed to
+   them
+
+Deal-specific terms (e.g. `spv_deal_terms.md`) can still be added by hand
+alongside the generated files. See `projectplan.md` for the full digest +
+manifest design and the `[DATA ROOM]` evidence tag (note: per-stage
+manifest-reading by RC/advisors/Bear is still being rolled out).
 
 ## Slug convention
 
