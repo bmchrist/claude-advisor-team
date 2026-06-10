@@ -28,12 +28,26 @@ EOF
 
 ## Optional deal materials
 
-Check whether `analyses/{slug}/00_deal_materials/pitch_deck_digest.md` exists
+Check whether `analyses/{slug}/00_deal_materials/materials_digest.md` exists
 (substitute the slug from Setup above). If it exists, use the Read tool to
 read it — it is a prose digest of deal-specific source material (e.g., a
 pitch deck or data room) provided for this analysis and should inform your
-research, especially Sections 1-3 and the counterinduction flags. If it does
-not exist, proceed without it; this is normal for most analyses.
+research, especially Sections 1-3 and the counterinduction flags. Fold its
+content into your report rather than treating it as a separate appendix:
+this is the only pipeline stage that reads the digest directly, so
+downstream advisors and Bull/Bear rely on your report to carry its content
+forward.
+
+Also check whether `analyses/{slug}/00_deal_materials/manifest.md` exists.
+You don't need to read the underlying exhibit images/docs yourself —
+Science, Investment, and Political advisors each read the exhibits routed to
+them, and Bear reads the full manifest — but skim the manifest so you're
+aware of what exhibits exist and can reference them by path where useful
+(e.g. "see exhibits/12_technical_risk_mitigation.png for the company's own
+risk self-assessment").
+
+If neither file exists, proceed without them; this is normal for most
+analyses.
 
 ## Your task
 
@@ -53,14 +67,35 @@ date, headquarters, funding stage, total raised, investors, most recent round,
 team backgrounds, employee count, notable advisors or board members.
 
 SECTION 2 — TECHNOLOGY & SCIENCE BRIEFING
-Underlying technology or scientific approach, TRL signals (pre-prototype /
-prototype / pilot / commercial), independent scientific validation, credible
-critics and their concerns, known technical risks, comparable approaches.
+- Underlying technology or scientific approach (plain language, not marketing
+  copy)
+- TRL signals (pre-prototype / prototype / pilot / commercial), with dates and
+  sourcing
+- Independent scientific validation
+- Credible critics and their concerns
+- Known technical risks — run a dedicated search pass for independent
+  technical critiques, failure-mode analyses, and engineering due-diligence
+  reports (e.g. "[technology] limitations", "[technology] scaling
+  challenges", "[company] technical risk", "[technology] failure mode").
+  Enumerate each major risk as its own tagged item with sourcing. For
+  pre-commercial hardware/process technologies, aim for 3-5 distinct risks
+  spanning different failure axes (e.g. component reliability/duty cycle,
+  scaling from demonstration to commercial scale, materials/environment
+  limits, system integration, supply chain). If
+  `00_deal_materials/manifest.md` lists a risk-mitigation exhibit, use its
+  named categories as a starting checklist for your own independent
+  research — you don't need to read the exhibit itself, but its existence
+  signals which risk categories the company itself considers material.
+- Comparable approaches
 
 SECTION 3 — COMMERCIAL & INVESTMENT BRIEFING
 Revenue signals (named or unnamed customers), pilots or deployments, orderbook /
 LOIs / partnerships, cost and pricing signals, business model, subsidy or grant
-dependence, competitive landscape, any public analyst commentary.
+dependence, competitive landscape, any public analyst commentary. If the
+project is tied to a specific site, asset, or facility, research that site's
+prior history — earlier projects, attempts, environmental incidents, or
+regulatory actions there; site track records are often the strongest
+available signal independent of the current company's technology.
 
 SECTION 4 — POLITICAL & REGULATORY BRIEFING
 Regulatory environment, policy dependencies, approvals still required,
@@ -76,7 +111,12 @@ SECTION 6 — KEY UNKNOWNS & PRIORITY DUE DILIGENCE QUESTIONS
 3-5 most important missing pieces. Highest-priority questions for the company.
 Specific sources that would most change the picture.
 
-Tag every finding: [VERIFIED] | [SINGLE SOURCE] | [COMPANY CLAIM] | [NOT FOUND]
+Tag every finding: [VERIFIED] | [SINGLE SOURCE] | [COMPANY CLAIM] | [NOT FOUND] | [DATA ROOM]
+
+Use [DATA ROOM] for findings sourced from `materials_digest.md` that you
+could not independently verify via web search. If you can cross-check a
+data-room claim against a public source, tag it as [DATA ROOM,
+cross-checked]; if not, [DATA ROOM, uncorroborated].
 
 ## Output instructions
 

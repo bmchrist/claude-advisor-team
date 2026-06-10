@@ -21,18 +21,26 @@ Before continuing, use the Read tool to read the following (substitute the slug 
 
 ## Optional deal materials
 
-For deal analyses, also check `analyses/{slug}/00_deal_materials/` (substitute
-the slug from "Current analysis" above):
-- If `analyses/{slug}/00_deal_materials/spv_deal_terms.md` exists, use the Read
-  tool to read it — it covers the investment vehicle's structure, fees, and
-  terms (separate from the underlying company's fundamentals).
-- If `analyses/{slug}/00_deal_materials/financial_exhibits/` exists, use the
-  Read tool to read every image file in that directory directly — these are
-  the deal's financial projection, valuation, capitalization, and
-  sources-and-uses tables, provided as images so you can review the actual
-  numbers rather than a transcribed summary.
-- If `00_deal_materials/` does not exist at all, proceed without it; this is
-  normal for non-deal (TECHNOLOGY/POLICY) analyses.
+For deal analyses, also check `analyses/{slug}/00_deal_materials/manifest.md`
+(substitute the slug from "Current analysis" above):
+- If it exists, use the Read tool to read it, then read every exhibit file
+  (image or doc, paths relative to `00_deal_materials/`) whose `route_to`
+  column includes "Investment Advisor" — these are the deal's financial
+  projection, valuation, capitalization, sources-and-uses, and deal-structure
+  exhibits, provided as images/docs so you can review the actual numbers
+  rather than a transcribed summary. Note any discrepancies between the
+  deck's figures and your own assessment of the underlying fundamentals.
+- The Research Collector's report (required reading above) already folds in
+  `materials_digest.md`, including any deal/SPV structure section, so you
+  don't need to read that file separately.
+- Older analyses created before `/ingest-materials` existed may instead have
+  a hand-curated `analyses/{slug}/00_deal_materials/spv_deal_terms.md` and/or
+  `analyses/{slug}/00_deal_materials/financial_exhibits/` directory. If
+  `manifest.md` is absent but either of these exists, read them the same way
+  (spv_deal_terms.md for vehicle structure/fees/terms; every image in
+  financial_exhibits/ for projections and cap tables).
+- If none of the above exist, proceed without deal materials; this is normal
+  for non-deal (TECHNOLOGY/POLICY) analyses.
 
 ## Your task
 
@@ -52,7 +60,7 @@ Cover:
 
 For deal analyses, also cover: asset quality and risk (offtake, currency,
 counterparty, construction), capital structure, management track record,
-investment structure quality (informed by `spv_deal_terms.md` if present),
+investment structure quality (informed by the manifest-routed deal-structure exhibits and/or the RC report's materials-digest section, if present),
 and exit and liquidity path. Use the financial exhibit images (if present) as
 your primary source for projections, valuations, and capitalization — note
 any discrepancies between the deck's projections and your own assessment of

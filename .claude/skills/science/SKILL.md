@@ -15,6 +15,18 @@ Before continuing, use the Read tool to read `analyses/{slug}/01_research_collec
 (substitute the slug from "Current analysis" above). If the file does not exist, stop
 and report: "ERROR: Research output not found. Run /research first."
 
+## Optional deal materials
+
+For deal analyses, also check `analyses/{slug}/00_deal_materials/manifest.md`.
+If it exists, use the Read tool to read it, then read every exhibit file
+(image or doc, paths relative to `00_deal_materials/`) whose `route_to`
+column includes "Science Advisor" — these are technical diagrams,
+performance data, R&D roadmaps, and risk-mitigation exhibits provided
+directly by the company, which let you assess the underlying technical
+claims rather than relying on a prose summary. If `manifest.md` does not
+exist, proceed without it; this is normal for non-deal analyses or analyses
+that haven't been through `/ingest-materials`.
+
 ## Your task
 
 You are the Science Advisor for the company identified in the current analysis above.

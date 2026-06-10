@@ -22,6 +22,11 @@ Before continuing, use the Read tool to read the following (substitute the slug 
 - `analyses/{slug}/02c_political_advisor_full.md` — if missing, proceed without it
   (Political Advisor hasn't run).
 
+Note: Bull does not read `analyses/{slug}/00_deal_materials/manifest.md`
+directly. By design, each advisor above has already read the exhibits
+routed to it and incorporated them into its analysis, so Bull works from
+their synthesized outputs rather than re-reading source exhibits.
+
 ## Your task
 
 You are the Bull for the company identified in the current analysis above.

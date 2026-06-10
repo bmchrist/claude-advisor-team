@@ -131,25 +131,41 @@ produces the digest + manifest + exhibit images described above.
       digest/manifest output quality
 
 **Per-stage behavior:**
-- [ ] RC: if `00_deal_materials/` exists, read `materials_digest.md` (as
+- [x] RC: if `00_deal_materials/` exists, read `materials_digest.md` (as
       today) and fold it into Sections 1-3 as appropriate; note the
       manifest's existence for downstream stages but doesn't need to read
       every exhibit itself
-- [ ] RC tagging vocabulary gains `[DATA ROOM]` alongside `[VERIFIED] |
+- [x] RC tagging vocabulary gains `[DATA ROOM]` alongside `[VERIFIED] |
       [SINGLE SOURCE] | [COMPANY CLAIM] | [NOT FOUND]` — findings sourced from
       the digest get this tag. Where RC can cross-check a data-room claim
       against web search, distinguish `[DATA ROOM, cross-checked]` vs
       `[DATA ROOM, uncorroborated]`
-- [ ] Each advisor (Science, Investment, Political): after required reading,
+- [x] Each advisor (Science, Investment, Political): after required reading,
       check `00_deal_materials/manifest.md` for rows where `route_to` includes
       its name, and Read those files directly (image or doc) as primary
       sources for that content
-- [ ] Bull: no manifest access by default — works from advisor outputs as
+- [x] Bull: no manifest access by default — works from advisor outputs as
       today, since advisors have already incorporated the relevant exhibits
-- [ ] Bear: broader default access — if `00_deal_materials/manifest.md`
+- [x] Bear: broader default access — if `00_deal_materials/manifest.md`
       exists, Bear reads *every* file listed in it regardless of routing tags,
       so it can check whether the Bull/advisors' reading of a chart or table
       actually matches the source
+
+  Implemented 2026-06-10 across `research`, `science`, `investment-advisor`,
+  `political`, `bull`, and `bear` SKILL.md files. Investment Advisor also
+  retains a backward-compat fallback to the legacy `spv_deal_terms.md` /
+  `financial_exhibits/` convention for analyses pre-dating
+  `/ingest-materials` (e.g. `quaise_energy_original`).
+
+  Follow-up (2026-06-10): RC's Section 2 (Technology & Science Briefing) was
+  restructured into a bulleted list, with "known technical risks" pulled out
+  into its own dedicated, more demanding instruction (run a separate search
+  pass for independent technical critiques/failure-mode analyses, enumerate
+  3-5 distinct risks for pre-commercial hardware, and use any
+  `manifest.md` risk-mitigation exhibit as a checklist of categories to
+  research). Section 3 also gained an instruction to research a project's
+  site/asset history when applicable (e.g. would have surfaced
+  Newberry/AltaRock's prior seismicity history for Quaise).
 
 **Open items / decisions:**
 - [x] Who/what creates the digest + manifest? Resolved — a new

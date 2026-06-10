@@ -15,6 +15,17 @@ Before continuing, use the Read tool to read `analyses/{slug}/01_research_collec
 (substitute the slug from "Current analysis" above). If the file does not exist, stop
 and report: "ERROR: Research output not found. Run /research first."
 
+## Optional deal materials
+
+For deal analyses, also check `analyses/{slug}/00_deal_materials/manifest.md`.
+If it exists, use the Read tool to read it, then read every exhibit file
+(image or doc, paths relative to `00_deal_materials/`) whose `route_to`
+column includes "Political Advisor" — these are regulatory filings, permits,
+and policy/legal exhibits provided directly, which let you review them
+rather than relying on a prose summary. If `manifest.md` does not exist,
+proceed without it; this is normal for non-deal analyses or analyses that
+haven't been through `/ingest-materials`.
+
 ## Your task
 
 You are the Political Advisor for the company identified in the current analysis above.

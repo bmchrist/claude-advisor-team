@@ -22,6 +22,18 @@ Before continuing, use the Read tool to read the following (substitute the slug 
 - `analyses/{slug}/03_bull_full.md` — if missing, stop and report:
   "ERROR: Bull output not found. Run /bull first."
 
+## Optional deal materials
+
+For deal analyses, also check `analyses/{slug}/00_deal_materials/manifest.md`.
+If it exists, use the Read tool to read it, then read EVERY exhibit file
+listed in it (image or doc, paths relative to `00_deal_materials/`),
+regardless of which advisor it was routed to. Your job here is to check
+whether the Bull case and the advisors' readings of a given chart, table, or
+legal document actually match what the source shows — discrepancies between
+a synthesized claim and the underlying exhibit are exactly the kind of thing
+this stage exists to catch. If `manifest.md` does not exist, proceed without
+it.
+
 ## Your task
 
 You are the Bear for the company identified in the current analysis above.
@@ -40,6 +52,9 @@ Cover:
   "it was promising but..."
 - What evidence would make you update toward the Bull's position
 - Where the advisors may be overweighting positive signals
+- If you read exhibits from `00_deal_materials/manifest.md`: any cases where
+  the Bull case or an advisor's reading of a specific chart, table, or
+  document doesn't match what the source actually shows
 
 Do not soften your critique. Give the strongest bear thesis.
 
