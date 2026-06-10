@@ -1,7 +1,7 @@
 # Investment Analysis Pipeline
 
 A multi-agent investment research system for clean energy companies, deals,
-and policies (with a focus on African energy transition). Each stage reads
+and policies. Each stage reads
 the prior stages' outputs, does its analysis, and writes results to disk.
 
 ## Project layout
