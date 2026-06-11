@@ -4,10 +4,17 @@ description: Push or re-push the current analysis to Notion from its local outpu
 disable-model-invocation: true
 context: fork
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page mcp__notion__notion-fetch
+argument-hint: "[company-or-slug]"
+arguments: target
 ---
 
-## Current analysis
-!`cat analyses/.current 2>/dev/null || echo "ERROR: No current analysis. Run /research first."`
+## Setup
+
+```!
+python3 scripts/resolve_target.py "$target"
+```
+
+If Setup printed an ERROR line, stop and report it to Ben verbatim.
 
 ## Today's date
 !`date +%Y-%m-%d`
@@ -21,7 +28,7 @@ attempt any of the steps below.
 
 ## Your task
 
-Catch up Notion sync for the analysis named in "Current analysis" above
+Catch up Notion sync for the analysis named in "Setup" above
 (substitute `{slug}` throughout below). For full conventions — database
 schema, page titles, stripping rules, content templates — see CLAUDE.md's
 "Notion sync" section. This skill applies the same logic each pipeline stage
@@ -40,9 +47,9 @@ If `main_page_id` is missing:
 - Otherwise, bootstrap exactly as `/research` does: call
   `notion-create-pages` with `parent: {"type": "data_source_id",
   "data_source_id": "8a829f17-bcb4-49d0-8562-26a0e6342df1"}` and:
-  - `properties.title` = company name (from `analyses/.current`)
+  - `properties.title` = company name (from `analyses/{slug}/.meta`)
   - `properties.Slug` = the slug
-  - `properties.Type` = type (from `analyses/.current`)
+  - `properties.Type` = type (from `analyses/{slug}/.meta`)
   - `properties["date:Analysis Date:start"]` = today's date (YYYY-MM-DD)
   - `properties["date:Analysis Date:is_datetime"]` = `0`
   - `content` = the standard placeholder block:

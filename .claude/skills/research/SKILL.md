@@ -17,8 +17,10 @@ type_ = """$type"""
 slug = company.lower().replace('+', '_plus').replace('&', '_and_')
 slug = re.sub(r'[^a-z0-9]+', '_', slug).strip('_')
 os.makedirs(f'analyses/{slug}', exist_ok=True)
-with open('analyses/.current', 'w') as f:
+with open(f'analyses/{slug}/.meta', 'w') as f:
     f.write(f'company="{company}"\nslug="{slug}"\ntype="{type_}"\n')
+with open('analyses/.last_target', 'w') as f:
+    f.write(slug + '\n')
 print(f'company:    {company}')
 print(f'slug:       {slug}')
 print(f'type:       {type_}')

@@ -34,23 +34,44 @@ finished analysis; local `.md`/`.json` files remain the source of truth.
 
 ## State
 
-The active analysis is tracked in `analyses/.current`:
+`/research` writes per-analysis metadata to `analyses/{slug}/.meta`:
 ```
 company="Acme+"
 slug="acme_plus"
 type="DEAL"
 ```
+and points `analyses/.last_target` (a single line containing the slug) at
+the analysis it just created.
 
-`/research` writes this file. All subsequent skills read it automatically.
+Every other skill (`/science` through `/executive`, plus `/notion-sync`)
+takes an optional `[company-or-slug]` argument and resolves a target as
+follows:
+- If an argument is given, derive the slug via the standard slug convention
+  (see "Slug convention" below) and read `analyses/{slug}/.meta`.
+- If omitted, read `analyses/.last_target` for the slug, then read that
+  slug's `.meta`.
+- If neither resolves to an existing `.meta` file, stop with a clear error
+  telling Ben to run `/research` or pass a target.
 
-**This mechanism is planned to change — see `projectplan.md` item 1** (per-folder
-`.meta` + a `.last_target` fallback, with an optional target argument on each
-skill). Until that lands, this is the current behavior.
+This means analyses can be revisited in any order without re-running
+`/research` — e.g. `/bear "Acme+"` re-targets Bear at `acme_plus` regardless
+of what ran most recently, and `/bear` with no argument continues with
+whatever analysis was last targeted by any skill. (`/research` is the only
+skill that doesn't take this argument — it always starts a new analysis from
+`<company> <type>`.)
+
+This resolution logic is implemented once, in `scripts/resolve_target.py`,
+and invoked identically from every downstream skill's `## Setup` block
+(`python3 scripts/resolve_target.py "$target"`) — it prints
+`company:`/`slug:`/`type:` on success or a line starting `ERROR:` on
+failure, and updates `analyses/.last_target` as a side effect of success.
+Change the resolution algorithm in that one file, not per-skill.
 
 ## Output structure
 
 ```
 analyses/
+  .last_target
   acme_plus/
     01_research_collector_full.md
     01_research_collector_summary.md
@@ -64,7 +85,7 @@ analyses/
     04_bear_full.md
     05_executive_data.json
     05_executive_narrative.md
-    .current
+    .meta
     .notion
 ```
 
@@ -206,9 +227,9 @@ Markdown tables in the body are fine; `notion-create-pages` renders them.
 
 ### Standalone sync (`/notion-sync`)
 
-`/notion-sync` re-syncs the current analysis (per `analyses/.current`)
-without re-running any analysis stage. Use it after a stage reported a
-Notion failure (MCP not configured, a transient API error, etc.), or to
+`/notion-sync [company-or-slug]` re-syncs the resolved analysis (see
+"State" above) without re-running any analysis stage. Use it after a stage
+reported a Notion failure (MCP not configured, a transient API error, etc.), or to
 bring an older analysis that predates Notion sync up to date.
 
 For each local output that exists, it (re-)pushes to Notion using the same

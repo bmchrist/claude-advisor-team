@@ -15,8 +15,9 @@ the prior stages' outputs, does its analysis, and writes results to disk.
 ## Running an analysis
 
 1. `/research "Company Name" TYPE` — starts a new analysis. `TYPE` is one of
-   `TECHNOLOGY`, `DEAL`, or `POLICY`. This becomes the active analysis for
-   subsequent commands (tracked in `analyses/.current`).
+   `TECHNOLOGY`, `DEAL`, or `POLICY`. This writes `analyses/<slug>/.meta` and
+   sets `analyses/.last_target` to this analysis, so it becomes the default
+   target for subsequent commands.
 2. Run the advisors, in any order:
    - `/science` — scientific/technical assessment
    - `/investment-advisor` — commercial viability and (for deals) deal terms
@@ -29,9 +30,19 @@ Each step needs the previous ones to have run (advisors need research, Bull
 needs advisors, Bear needs Bull, Executive needs everything). If a required
 file is missing, the skill will tell you what to run first.
 
-To switch to a different company, run `/research` again with the new
-company/type. (See `projectplan.md` for planned changes to make jumping
-between analyses less disruptive.)
+### Targeting a company
+
+Every command except `/research` takes an optional `[company-or-slug]`
+argument, e.g. `/bear "Fervo Energy"` or `/bear fervo`. This resolves to a
+slug (via the standard slug convention below), looks up
+`analyses/<slug>/.meta`, and becomes the new default target
+(`analyses/.last_target`).
+
+If you omit the argument, the command falls back to whatever was last
+targeted by any command — so once you've pointed at a company, you can keep
+running commands against it without repeating the name. To switch to a
+different company, just pass its name or slug to the next command; no need
+to re-run `/research`.
 
 ## Output structure
 
@@ -39,17 +50,19 @@ Each analysis lives in `analyses/<slug>/` (slug derived from the company
 name — see Slug convention below):
 
 ```
-analyses/<slug>/
-  01_research_collector_full.md / _summary.md
-  02a_science_advisor_full.md / _summary.md
-  02b_investment_advisor_full.md / _summary.md
-  02c_political_advisor_full.md / _summary.md
-  03_bull_full.md
-  04_bear_full.md
-  05_executive_data.json
-  05_executive_narrative.md
-  .current
-  .notion
+analyses/
+  .last_target           <- slug of the most recently targeted analysis
+  <slug>/
+    01_research_collector_full.md / _summary.md
+    02a_science_advisor_full.md / _summary.md
+    02b_investment_advisor_full.md / _summary.md
+    02c_political_advisor_full.md / _summary.md
+    03_bull_full.md
+    04_bear_full.md
+    05_executive_data.json
+    05_executive_narrative.md
+    .meta
+    .notion
 ```
 
 `_full.md` files are the complete analyses; `_summary.md` files are short

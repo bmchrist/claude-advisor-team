@@ -5,15 +5,22 @@ disable-model-invocation: true
 context: fork
 model: claude-opus-4-6
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page
+argument-hint: "[company-or-slug]"
+arguments: target
 ---
 
-## Current analysis
-!`cat analyses/.current 2>/dev/null || echo "ERROR: No current analysis. Run /research first."`
+## Setup
+
+```!
+python3 scripts/resolve_target.py "$target"
+```
+
+If Setup printed an ERROR line, stop and report it to Ben verbatim.
 
 ## Required reading
 
 Before continuing, use the Read tool to read the following (substitute the slug from
-"Current analysis" above):
+"Setup" above):
 - `analyses/{slug}/01_research_collector_summary.md` — if missing, stop and report:
   "ERROR: Research summary not found."
 - `analyses/{slug}/02a_science_advisor_full.md` — if missing, proceed without it.

@@ -4,15 +4,22 @@ description: Run the Political Advisor stage for the current analysis.
 disable-model-invocation: true
 context: fork
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page
+argument-hint: "[company-or-slug]"
+arguments: target
 ---
 
-## Current analysis
-!`cat analyses/.current 2>/dev/null || echo "ERROR: No current analysis. Run /research first."`
+## Setup
+
+```!
+python3 scripts/resolve_target.py "$target"
+```
+
+If Setup printed an ERROR line, stop and report it to Ben verbatim.
 
 ## Required reading
 
 Before continuing, use the Read tool to read `analyses/{slug}/01_research_collector_full.md`
-(substitute the slug from "Current analysis" above). If the file does not exist, stop
+(substitute the slug from "Setup" above). If the file does not exist, stop
 and report: "ERROR: Research output not found. Run /research first."
 
 ## Optional deal materials
