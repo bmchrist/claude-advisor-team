@@ -1,10 +1,10 @@
 ---
 name: Executive
-description: Run the Executive synthesis stage. Produces scorecard, narrative, and HTML report.
+description: Run the Executive synthesis stage. Produces scorecard data and narrative, and syncs them to Notion.
 disable-model-invocation: true
 context: fork
 model: claude-opus-4-6
-allowed-tools: Read Write Bash
+allowed-tools: Read Write Bash mcp__notion__notion-update-page mcp__notion__notion-fetch
 ---
 
 ## Current analysis
@@ -110,7 +110,7 @@ Write "None identified." if clean.
 ## Output instructions
 
 Read company, slug, type, and date from the current analysis and date sections above.
-Write three files:
+Write two files:
 
 ---
 
@@ -150,72 +150,60 @@ Para 3: <the bear case in specific terms>
 Para 4: <what needs to be true for the bull case to play out>
 [NARRATIVE_END]
 
----
+## Notion sync
 
-**File 3:** `analyses/{slug}/05_executive_report.html`
+See `CLAUDE.md`'s "Notion sync" section for full conventions. If
+`mcp__notion__*` tools aren't available, state this in your summary
+(e.g. "Notion sync skipped — `notion` MCP not configured; run
+/notion-sync once it is") rather than failing silently.
 
-A self-contained HTML report. Use this exact structure and styling, substituting
-real values from the JSON data you produced above:
+Read `analyses/{slug}/.notion`. If it has no `main_page_id`, skip this
+section and note in your summary: "Notion sync skipped — run /research
+first to enable it (or /notion-sync to bootstrap and catch up in one go)."
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{subject} — Investment Analysis</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.65; color: #1a1a1a; background: #f5f5f4; }
-  .page { max-width: 900px; margin: 40px auto; padding: 0 20px 80px; }
-  .card { background: white; border-radius: 10px; padding: 24px 28px; margin-bottom: 16px; border: 1px solid #e7e5e4; }
-  .label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #a8a29e; margin-bottom: 14px; }
-  .company { font-size: 26px; font-weight: 700; margin-bottom: 4px; }
-  .meta { font-size: 13px; color: #78716c; margin-bottom: 18px; }
-  .badges { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .badge { display: inline-flex; align-items: center; padding: 7px 16px; border-radius: 7px; font-weight: 700; font-size: 14px; color: white; }
-  .grade-badge { font-size: 20px; }
-  .grade-driver { margin-top: 12px; font-size: 13px; color: #57534e; font-style: italic; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th { padding: 7px 10px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #a8a29e; border-bottom: 1px solid #e7e5e4; }
-  td { padding: 9px 10px; border-bottom: 1px solid #f5f5f4; vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  .dim { font-weight: 500; }
-  .num { text-align: center; width: 52px; font-weight: 600; }
-  .central { font-size: 16px; }
-  .muted { color: #a8a29e; }
-  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
-  .spread { font-size: 12px; width: 80px; }
-  .spread.wide { color: #f97316; }
-  .spread.moderate { color: #eab308; }
-  .spread.narrow { color: #84cc16; }
-  .driver { font-size: 13px; color: #78716c; }
-  .narrative p { margin-bottom: 13px; }
-  .narrative p:last-child { margin-bottom: 0; }
-  .crux { border-left: 3px solid #3b82f6; padding-left: 16px; color: #1c1917; }
-  ul { padding-left: 18px; }
-  li { margin-bottom: 7px; color: #292524; }
-  .footer { text-align: center; color: #c4b5a5; font-size: 12px; margin-top: 32px; }
-</style>
-</head>
-<body>
-<div class="page">
-  <!-- Header card: company name, meta, grade badge, status badge, grade_driver -->
-  <!-- Scorecard table: bear / central / bull columns, spread column, driver column -->
-  <!-- Color dots on central scores: 1=#dc2626 2=#f97316 3=#eab308 4=#84cc16 5=#22c55e -->
-  <!-- Spread: bull-bear >= 3 = wide (#f97316), >= 2 = moderate (#eab308), else narrow (#84cc16) -->
-  <!-- Grade colors: A=#15803d B=#65a30d C=#ca8a04 D=#ea580c F=#dc2626 (adjust +/- one shade) -->
-  <!-- Status colors: INVEST=#22c55e TRACK=#3b82f6 INVESTIGATE=#f59e0b PASS=#ef4444 -->
-  <!-- Narrative card -->
-  <!-- Crux card -->
-  <!-- Evidence that would change this conclusion card -->
-  <!-- Values flags card -->
-  <!-- Next actions card -->
-  <!-- Footer: date · Investment Analysis Pipeline -->
-</div>
-</body>
-</html>
-```
+Otherwise:
 
-Generate the full HTML directly — do not leave the comment placeholders in the
-output. Substitute all real values from the JSON you produced.
+1. **Update properties** — call `notion-update-page` with `page_id` =
+   `main_page_id`, `command: update_properties`:
+   - `Grade` = the letter grade from STEP 2
+   - `Grade driver` = the one-sentence grade driver from STEP 2
+   - `Status` = the investment status from STEP 2
+   - `date:Analysis Date:start` = today's date (YYYY-MM-DD)
+   - `date:Analysis Date:is_datetime` = `0`
+
+2. **Replace main page content** — call `notion-fetch` on `main_page_id` to
+   get its current content. Take everything from the start of the content up
+   to (not including) `## Stage Reports` as `old_str`. Build `new_str` from
+   the values produced in STEPS 1-7:
+   ```
+   > **Grade {grade} · {status}**
+   > {grade_driver}
+
+   ## Executive Narrative
+   {the four narrative paragraphs from STEP 3, separated by blank lines}
+
+   ## Scorecard
+   {markdown table: Dimension | Bear | Central | Bull | Driver — one row
+   per dimension scored in STEP 1}
+
+   ## The Crux
+   {STEP 4}
+
+   ## Values & Judgment Flags
+   {STEP 6, as a bulleted list, or "None identified."}
+
+   ## What Would Change This
+   {STEP 5 items, as a bulleted list}
+
+   ## Next Actions
+   {STEP 7 items, as a bulleted list}
+   ```
+   Then call `notion-update-page` with `page_id` = `main_page_id`,
+   `command: update_content`, and one entry in `content_updates` with this
+   `old_str`/`new_str` pair. Leave `## Stage Reports` and everything after it
+   untouched — that section lists the stage sub-pages as child pages, and
+   `replace_content` would delete them.
+
+If any Notion call fails, state this clearly in your summary (e.g. "Notion
+sync failed: <error> — run /notion-sync to retry") rather than burying it —
+but don't block; the markdown/JSON outputs are the source of truth.

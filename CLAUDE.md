@@ -18,7 +18,12 @@ changes, see `projectplan.md`.
 | `/political` | research full | `02c_political_advisor_full.md`, `02c_political_advisor_summary.md` |
 | `/bull` | rc summary + advisor fulls | `03_bull_full.md` |
 | `/bear` | rc summary + advisor fulls + bull | `04_bear_full.md` |
-| `/executive` | rc summary + advisor summaries + bull + bear | `05_executive_data.json`, `05_executive_narrative.md`, `05_executive_report.html` |
+| `/executive` | rc summary + advisor summaries + bull + bear | `05_executive_data.json`, `05_executive_narrative.md` |
+
+All outputs are markdown (plus one JSON file from Executive). Each stage
+(except `/ingest-materials`) also mirrors its output to Notion as it
+finishes — see "Notion sync" below. Notion is the primary way to browse a
+finished analysis; local `.md`/`.json` files remain the source of truth.
 
 ## Context window discipline
 
@@ -59,8 +64,15 @@ analyses/
     04_bear_full.md
     05_executive_data.json
     05_executive_narrative.md
-    05_executive_report.html
+    .current
+    .notion
 ```
+
+Browsing an analysis means opening these markdown files directly, or — once
+`/research` has bootstrapped Notion sync — opening the analysis's main page
+in Notion (`analyses/{slug}/.notion` has the URL), which links every stage's
+sub-page. See "Notion sync" below for how this is kept up to date, and
+`/notion-sync` for re-pushing anything that failed to sync.
 
 Deal analyses may also include `00_deal_materials/` (pitch deck digest, deal
 terms, financial exhibits) as input context for `/research`:
@@ -85,6 +97,130 @@ whether Bull/advisor readings of a chart or table match the source. Bull does
 not read the manifest — it works from the advisors' synthesized outputs. See
 `projectplan.md` item 3 for background on this convention.
 
+## Notion sync
+
+Each pipeline stage (except the standalone `/ingest-materials`) mirrors its
+output to Notion as it finishes, so an analysis can be browsed without
+opening local files — Notion is the primary way the user reads finished analyses.
+This is best-effort and never blocks: if the Notion MCP tools aren't
+available, or any call fails, the skill **says so explicitly in its
+summary** (don't fail silently) and continues — the markdown/JSON outputs
+remain the source of truth, and `/notion-sync` (see below) can push the
+missing piece later without re-running the analysis.
+
+### Prerequisite
+
+Requires a Notion MCP server configured in Claude Code under the name
+`notion` (e.g. `claude mcp add --transport http notion
+https://mcp.notion.com/mcp`, or whatever connects to your existing Notion
+integration — the server just needs to expose the standard
+`notion-create-pages` / `notion-update-page` / `notion-fetch` tools under that
+name). If `mcp__notion__*` tools aren't present, the skill should still note
+this in its summary (e.g. "Notion sync skipped — `notion` MCP server not
+configured; run `/notion-sync` once it is") so the gap doesn't go unnoticed.
+
+### Database
+
+Pages live in the "Investment Analysis Pipeline" database (data source
+`8a829f17-bcb4-49d0-8562-26a0e6342df1`), under the "Investments" page in
+Notion. Schema: `Name` (title), `Slug` (text), `Type` (select:
+DEAL/TECHNOLOGY/POLICY), `Status` (select: INVEST/TRACK/INVESTIGATE/PASS),
+`Grade` (select: A/A-/B+/B/B-/C+/C/C-/D+/D/F), `Grade driver` (text),
+`Analysis Date` (date — set via `date:Analysis Date:start` as a string and
+`date:Analysis Date:is_datetime` as the **number** `0`, not a boolean).
+
+### State file
+
+`analyses/{slug}/.notion` tracks page IDs, written incrementally as stages
+run:
+```
+main_page_id="..."
+main_page_url="..."
+stage1_page_id="..."
+stage2a_page_id="..."
+stage2b_page_id="..."
+stage2c_page_id="..."
+stage3_page_id="..."
+stage4_page_id="..."
+```
+If `main_page_id` is missing, only `/research` can create it (bootstrap,
+below); every other stage skips sync and says so in its summary ("run
+/research first to enable Notion sync, or /notion-sync to bootstrap and
+catch up in one go").
+
+### Bootstrap (research only)
+
+If `.notion` doesn't yet have `main_page_id`, `/research` creates the main
+page (parent = the data source above) with `Name`=company, `Slug`=slug,
+`Type`=type, `Analysis Date`=today. `Grade` and `Status` are left unset —
+`/executive` sets them later. Initial content:
+```
+> **Grade: pending**
+> Run /executive to populate the grade, scorecard, and narrative.
+
+## Executive Narrative
+_Pending — run /executive to populate this analysis._
+
+## Stage Reports
+Full write-ups for each pipeline stage are linked as sub-pages below.
+```
+Everything before `## Stage Reports` is a placeholder block that `/executive`
+replaces wholesale later. Write the returned page id/url to `.notion` as
+`main_page_id`/`main_page_url` immediately, before doing anything else.
+
+### Stage sub-pages (1, 2a, 2b, 2c, 3, 4 — not 5)
+
+Each of these stages pushes its `_full.md` as a sub-page of `main_page_id`,
+titled exactly: "Stage 1: Research Collector Briefing", "Stage 2a: Science
+Advisor Assessment", "Stage 2b: Investment Advisor Assessment", "Stage 2c:
+Political & Regulatory Risk Analysis", "Stage 3: Bull Case", "Stage 4: Bear
+Case".
+
+Before pushing, strip the H1 title line and the `[XXX_START]`/`[XXX_END]`
+delimiter lines from the file's content — the page title comes from
+`properties.title`, and the delimiters are fork-handoff markers, not content.
+Markdown tables in the body are fine; `notion-create-pages` renders them.
+
+- If `.notion` already has this stage's `_page_id` (re-run), call
+  `notion-update-page` with `command: replace_content` and the stripped
+  content as `new_str`. These sub-pages have no children, so this is always
+  safe.
+- Otherwise, call `notion-create-pages` with `parent: {"type": "page_id",
+  "page_id": main_page_id}`, then write the returned page id back to
+  `.notion` as `stageN_page_id`.
+
+### Executive sync
+
+`/executive` updates the main page in place rather than creating a sub-page:
+
+1. `notion-update-page` `command: update_properties` on `main_page_id`:
+   `Grade`, `Grade driver`, `Status`, and refresh `Analysis Date` to today.
+2. `notion-fetch` the main page, take everything from the start of its
+   content up to (not including) `## Stage Reports` as `old_str`, and call
+   `notion-update-page` `command: update_content` to replace it (`new_str`)
+   with the Grade callout + Executive Narrative + Scorecard table + Crux +
+   Values & Judgment Flags + What Would Change This + Next Actions —
+   mirroring the structure of `05_executive_data.json` /
+   `05_executive_narrative.md`. Leave `## Stage Reports` and its child
+   sub-pages untouched.
+
+### Standalone sync (`/notion-sync`)
+
+`/notion-sync` re-syncs the current analysis (per `analyses/.current`)
+without re-running any analysis stage. Use it after a stage reported a
+Notion failure (MCP not configured, a transient API error, etc.), or to
+bring an older analysis that predates Notion sync up to date.
+
+For each local output that exists, it (re-)pushes to Notion using the same
+logic as the owning stage above — bootstrapping the main page if
+`main_page_id` is missing and `01_research_collector_full.md` exists, then
+each stage 1/2a/2b/2c/3/4 sub-page if its `_full.md` exists, then the
+Executive sync if `05_executive_data.json` and `05_executive_narrative.md`
+exist. Existing pages are updated (`replace_content` / `update_content`);
+missing pages are created. It reports a per-stage status table (synced /
+updated / skipped — no local file / error) and updates `.notion`
+incrementally as it goes.
+
 ## Slug convention
 
 Company name → slug: lowercase, `+` → `_plus`, `&` → `_and`, non-alphanumeric
@@ -104,7 +240,7 @@ Update these in the relevant SKILL.md frontmatter if you want to switch models.
 
 - Adversarial spine: Bull + Bear are primary agents, not parallel specialists
   reporting to a synthesizer
-- Ben plays the Executive/judge role for the final investment call, informed
+- The user plays the Executive/judge role for the final investment call, informed
   by the automated Executive synthesis
 - Each skill is isolated (`context: fork`) — don't assume shared state beyond
   the files documented above

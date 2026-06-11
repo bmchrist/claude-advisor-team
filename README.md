@@ -23,8 +23,7 @@ the prior stages' outputs, does its analysis, and writes results to disk.
    - `/political` — political and regulatory risk
 3. `/bull` — steelmans the investment thesis using the advisor outputs
 4. `/bear` — generates rival readings against the Bull case
-5. `/executive` — synthesizes everything into a scorecard, narrative, and
-   HTML report
+5. `/executive` — synthesizes everything into a scorecard and narrative
 
 Each step needs the previous ones to have run (advisors need research, Bull
 needs advisors, Bear needs Bull, Executive needs everything). If a required
@@ -49,12 +48,18 @@ analyses/<slug>/
   04_bear_full.md
   05_executive_data.json
   05_executive_narrative.md
-  05_executive_report.html   <- open this for the polished report
+  .current
+  .notion
 ```
 
 `_full.md` files are the complete analyses; `_summary.md` files are short
-briefings for downstream stages. `05_executive_report.html` is the
-self-contained, shareable summary.
+briefings for downstream stages.
+
+Each stage (except `/ingest-materials`) also mirrors its output to Notion as
+it finishes — Notion is the easiest way to browse a finished analysis (one
+page per company, with sub-pages for each stage). If a stage reports that
+Notion sync didn't happen, run `/notion-sync` to catch up without re-running
+the analysis. See `CLAUDE.md`'s "Notion sync" section for setup.
 
 ## Adding deal materials (data rooms, pitch decks, etc.)
 

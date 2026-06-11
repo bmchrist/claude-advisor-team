@@ -3,7 +3,7 @@ name: Political Advisor
 description: Run the Political Advisor stage for the current analysis.
 disable-model-invocation: true
 context: fork
-allowed-tools: Read Write
+allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page
 ---
 
 ## Current analysis
@@ -67,3 +67,29 @@ Read the slug from the current analysis above. Write two files:
 (c) Evidence that would change your assessment:
 <specific and falsifiable>
 [SUMMARY_END]
+
+## Notion sync
+
+See `CLAUDE.md`'s "Notion sync" section for full conventions. If
+`mcp__notion__*` tools aren't available, state this in your summary
+(e.g. "Notion sync skipped — `notion` MCP not configured; run
+/notion-sync once it is") rather than failing silently.
+
+Read `analyses/{slug}/.notion`. If it has no `main_page_id`, skip this
+section and note in your summary: "Notion sync skipped — run /research
+first to enable it (or /notion-sync to bootstrap and catch up in one go)."
+
+Otherwise, take `02c_political_advisor_full.md`, strip the H1 title line and the
+`[ANALYSIS_START]`/`[ANALYSIS_END]` delimiter lines, then:
+
+- If `.notion` already has `stage2c_page_id`, call `notion-update-page` with
+  `page_id` = that id, `command: replace_content`, `new_str` = the stripped
+  content.
+- Otherwise, call `notion-create-pages` with `parent: {"type": "page_id",
+  "page_id": main_page_id}`, `properties.title` = "Stage 2c: Political & Regulatory Risk Analysis",
+  `content` = the stripped content. Append the returned page id to
+  `.notion` as `stage2c_page_id="..."`.
+
+If the Notion call fails, state this clearly in your summary (e.g. "Notion
+sync failed: <error> — run /notion-sync to retry") rather than burying it —
+but don't block; the markdown output is the source of truth.
