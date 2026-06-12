@@ -4,7 +4,7 @@ description: Start a new investment analysis. Provide company name and analysis 
 disable-model-invocation: true
 context: fork
 allowed-tools: WebSearch Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page
-argument-hint: "<company> <type>"
+argument-hint: '"Company Name" DEAL|TECHNOLOGY|POLICY'
 arguments: company type
 ---
 
