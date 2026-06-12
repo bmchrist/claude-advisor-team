@@ -47,8 +47,15 @@ else:
         if not line or '=' not in line:
             continue
         k, v = line.split('=', 1)
-        meta[k] = v.strip('"')
-    open('analyses/.last_target', 'w').write(slug + '\n')
-    print(f'company: {meta.get("company", "")}')
-    print(f'slug:    {slug}')
-    print(f'type:    {meta.get("type", "")}')
+        meta[k] = v.strip('"“”\'')
+
+    VALID_TYPES = {'DEAL', 'TECHNOLOGY', 'POLICY'}
+    type_ = meta.get('type', '').upper()
+    if type_ not in VALID_TYPES:
+        print(f'ERROR: invalid type \'{meta.get("type", "")}\' in '
+              f'analyses/{slug}/.meta — expected DEAL|TECHNOLOGY|POLICY')
+    else:
+        open('analyses/.last_target', 'w').write(slug + '\n')
+        print(f'company: {meta.get("company", "")}')
+        print(f'slug:    {slug}')
+        print(f'type:    {type_}')
