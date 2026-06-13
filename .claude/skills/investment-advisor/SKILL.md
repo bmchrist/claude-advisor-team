@@ -96,6 +96,14 @@ Read the slug from the current analysis above. Write two files:
 
 (c) Evidence that would change your assessment:
 <specific and falsifiable>
+
+(d) Deal terms — DEAL analyses only:
+If `materials_digest.md` (or legacy `spv_deal_terms.md`) contains valuation,
+round-size, instrument, or other price-relevant terms, state them here under a
+`## Deal terms` heading: valuation/cap, round size, instrument, and any
+price-relevant conditions. The Executive stage sources its deal-terms &
+price-sensitivity paragraph from this block. Omit (d) entirely for non-DEAL
+analyses or when no price-relevant terms were ingested.
 [SUMMARY_END]
 
 ## Notion sync

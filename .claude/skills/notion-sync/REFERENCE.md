@@ -115,6 +115,7 @@ creating a sub-page.
    ```
    > **Grade {grade} · {status}**
    > {grade_driver}
+   > _Status rule: {status_reason}_
 
    ## Executive Narrative
    {four narrative paragraphs, separated by blank lines}
@@ -126,8 +127,17 @@ creating a sub-page.
    ## The Crux
    {crux}
 
+   ## Catalysts & Triggers
+   {markdown table: Event | Expected window | Scorecard rows moved | Flips to | Source stage — one row per `catalysts` entry}
+
+   ## Sourcing Strength
+   {sourcing_strength rollup line, or its 2-3 row table}
+
+   ## Deal Terms & Price Sensitivity
+   {deal_terms paragraph — DEAL analyses only; omit this heading entirely for non-DEAL}
+
    ## Values & Judgment Flags
-   {values flags, bulleted, or "None identified."}
+   {one bullet per values_flags checklist item — subsidy dependence, dual-use/weapons adjacency, safety/environmental-justice exposure, governance, plus any extra flags — each stated flag-or-clear}
 
    ## What Would Change This
    {evidence-to-change items, bulleted}
