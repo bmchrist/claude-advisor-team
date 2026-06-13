@@ -46,12 +46,20 @@ Cover:
    political continuity risk
 2. Country/jurisdiction risk — realistic downside if political environment shifts
 3. Stakeholder map — who benefits, who loses, who can block or undermine this?
-4. US political context if relevant — ITC / PTC / IRA / tariff exposure
-5. For African market deals: PPA enforcement track record, utility
-   creditworthiness, currency repatriation mechanics, permitting culture
-   vs. law on paper
+4. US political context — ITC / PTC / IRA / tariff exposure
+5. Region-specific market context — PPA enforcement track record, utility
+   creditworthiness, currency repatriation mechanics, permitting culture vs.
+   law on paper, for any non-US region (e.g. Africa, Latin America, Southeast
+   Asia) that is material to the company's actual or stated target markets
+   per the RC briefing's operations/market sections
 6. Counterinduction: what does this look like if political tailwinds reverse
    in the next 3-5 years?
+
+Items 4 and 5 are conditional on relevance to this company. If a region or
+jurisdiction covered by item 4 or 5 is not material to this company's actual
+or stated operations, omit that numbered section entirely from your output —
+do not write a "Not applicable" or "not relevant" stub — and number the
+remaining sections sequentially so there are no gaps.
 
 ## Output instructions
 
