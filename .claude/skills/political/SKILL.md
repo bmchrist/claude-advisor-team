@@ -63,6 +63,10 @@ remaining sections sequentially so there are no gaps.
 
 ## Output instructions
 
+Your full analysis (File 1) must include a subsection headed "Working/failing signals for this company" that instantiates the pipeline's "working" vs. "failing" definitions (see CLAUDE.md's "System framing — counterinduction") for THIS specific company. Translate each generic signal into what it concretely looks like here — for the working side: repeat orders without subsidy dependence, private capital at risk, costs approaching parity, high utilization; for the failing side: niche-shifting, order cancellations, low utilization, flat cost curves, continued subsidy dependence after 5+ years. State the concrete, observable signals for this company's political and regulatory position rather than restating the definitions verbatim.
+
+When you state a quantitative threshold or cutoff that is not drawn from a cited source, label it `(analyst prior)` inline — this keeps invented numbers (e.g. assumed policy-support timelines or risk percentages) visibly distinct from sourced ones as they flow downstream into Bull/Bear/Executive.
+
 Read the slug from the current analysis above. Write two files:
 
 **File 1:** `analyses/{slug}/02c_political_advisor_full.md`
