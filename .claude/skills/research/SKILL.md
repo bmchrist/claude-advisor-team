@@ -10,23 +10,17 @@ arguments: company type
 
 ## Setup
 ```!
-python3 - << 'EOF'
-import re, os
-company = """$company"""
-type_ = """$type"""
-slug = company.lower().replace('+', '_plus').replace('&', '_and_')
-slug = re.sub(r'[^a-z0-9]+', '_', slug).strip('_')
-os.makedirs(f'analyses/{slug}', exist_ok=True)
-with open(f'analyses/{slug}/.meta', 'w') as f:
-    f.write(f'company="{company}"\nslug="{slug}"\ntype="{type_}"\n')
-with open('analyses/.last_target', 'w') as f:
-    f.write(slug + '\n')
-print(f'company:    {company}')
-print(f'slug:       {slug}')
-print(f'type:       {type_}')
-print(f'output_dir: analyses/{slug}')
-EOF
+python3 scripts/resolve_target.py --new "$company" "$type"
 ```
+
+If Setup printed an ERROR line, stop and report it to Ben verbatim — do not
+create any output files. If it printed a WARNING line, continue but include
+it in your final summary.
+
+Once Setup succeeds, write the `slug` value it printed to
+`analyses/.last_target` (overwrite any existing content with just that slug
+plus a trailing newline) — this makes the new analysis the default target
+for every other pipeline skill.
 
 ## Optional deal materials
 
@@ -122,7 +116,7 @@ cross-checked]; if not, [DATA ROOM, uncorroborated].
 
 ## Output instructions
 
-Write two files using the output_dir shown in Setup above:
+Write two files using the slug shown in Setup above (`analyses/{slug}/...`):
 
 **File 1:** `analyses/{slug}/01_research_collector_full.md`
 The complete six-section analysis, delimited:

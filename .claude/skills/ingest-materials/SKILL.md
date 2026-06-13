@@ -11,17 +11,21 @@ arguments: target source
 
 ## Setup
 ```!
+slug_out=$(python3 scripts/resolve_target.py --slug-only "$target")
+echo "$slug_out"
+if echo "$slug_out" | grep -q "^ERROR:"; then
+  exit 0
+fi
+export RESOLVED_SLUG=$(echo "$slug_out" | grep "^slug:" | sed 's/^slug: *//')
+
 python3 - << 'EOF'
-import re, os, shutil
-target = """$target"""
+import os, shutil
+slug = os.environ['RESOLVED_SLUG']
 source = """$source""".strip().strip('"').strip("'")
-slug = target.lower().replace('+', '_plus').replace('&', '_and_')
-slug = re.sub(r'[^a-z0-9]+', '_', slug).strip('_')
 raw_dir = f'analyses/{slug}/00_deal_materials/raw'
 exhibits_dir = f'analyses/{slug}/00_deal_materials/exhibits'
 os.makedirs(raw_dir, exist_ok=True)
 os.makedirs(exhibits_dir, exist_ok=True)
-print(f'slug:        {slug}')
 print(f'raw_dir:     {raw_dir}')
 print(f'exhibits_dir: {exhibits_dir}')
 
@@ -66,6 +70,9 @@ else:
     print('files: none')
 EOF
 ```
+
+If Setup printed an ERROR line, stop and report it to Ben verbatim. If it
+printed a WARNING line, note it in your final summary.
 
 If `files: none`, stop and report:
 
