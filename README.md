@@ -141,8 +141,10 @@ Two definitions worth knowing when reading advisor outputs:
 
 ## Models
 
-- Research, advisors, Bull: `claude-sonnet-4-6`
-- Bear, Executive: `claude-opus-4-6` (higher-judgment stages)
+- `claude-sonnet-4-6`: Research, Science Advisor, Political Advisor, Bull, Notion Sync
+- `claude-opus-4-6`: Investment Advisor, Bear, Executive, Ingest Materials
+  (higher-judgment stages — Investment Advisor is grouped here intentionally,
+  for deal-terms judgment, even though the other advisors run on sonnet)
 
 ## Ad hoc prompts (outside the pipeline)
 

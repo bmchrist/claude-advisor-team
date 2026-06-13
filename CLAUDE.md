@@ -252,8 +252,12 @@ Examples: `Acme+` → `acme_plus`, `AT&T` → `at_and_t`, `Bright Energy` →
 
 ## Models
 
-- Research, advisors, Bull: `claude-sonnet-4-6`
-- Bear, Executive, Ingest Materials: `claude-opus-4-6`
+- `claude-sonnet-4-6`: Research, Science Advisor, Political Advisor, Bull, Notion Sync
+- `claude-opus-4-6`: Investment Advisor, Bear, Executive, Ingest Materials
+
+Investment Advisor is intentionally pinned to opus rather than sonnet, unlike
+the other two advisors — deal-terms and capital-structure judgment benefits
+from the larger model.
 
 Update these in the relevant SKILL.md frontmatter if you want to switch models.
 

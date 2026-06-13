@@ -23,8 +23,6 @@ Before continuing, use the Read tool to read the following (substitute the slug 
 "Setup" above):
 - `analyses/{slug}/01_research_collector_full.md` — if missing, stop and report:
   "ERROR: Research output not found. Run /research first."
-- `analyses/{slug}/02a_science_advisor_full.md` — if missing, that's fine, the
-  Science Advisor hasn't run yet; proceed without it.
 
 ## Optional deal materials
 
@@ -53,8 +51,8 @@ For deal analyses, also check `analyses/{slug}/00_deal_materials/manifest.md`
 
 You are the Investment Advisor for the company identified in the current analysis above.
 
-The Research Collector briefing and any Science Advisor output are the files you just
-read. Analyze commercial viability. Be direct.
+The Research Collector briefing (read above) is the file you just read.
+Analyze commercial viability. Be direct.
 
 Cover:
 1. Unit economics — cost curve trajectory, when (if ever) does it reach parity?

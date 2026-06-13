@@ -3,6 +3,7 @@ name: Science Advisor
 description: Run the Science Advisor stage for the current analysis.
 disable-model-invocation: true
 context: fork
+model: claude-sonnet-4-6
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page
 argument-hint: "[company-or-slug]"
 arguments: target

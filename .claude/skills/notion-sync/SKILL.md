@@ -3,6 +3,7 @@ name: Notion Sync
 description: Push or re-push the current analysis to Notion from its local outputs, without re-running any pipeline stage. Use after a stage reported a Notion sync failure, or to bring an older analysis up to date.
 disable-model-invocation: true
 context: fork
+model: claude-sonnet-4-6
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page mcp__notion__notion-fetch
 argument-hint: "[company-or-slug]"
 arguments: target
