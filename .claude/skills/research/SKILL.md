@@ -136,48 +136,15 @@ Use the slug shown in Setup to construct the exact file paths.
 
 ## Notion sync
 
-See `CLAUDE.md`'s "Notion sync" section for full conventions (database
-schema, state file format, stripping rules). If `mcp__notion__*` tools aren't available, state this in your summary
-(e.g. "Notion sync skipped — `notion` MCP not configured; run
-/notion-sync once it is") rather than failing silently.
+See `.claude/skills/notion-sync/REFERENCE.md` for full conventions
+(skip/failure wording, performance notes). If `analyses/{slug}/.notion` is
+missing `main_page_id`, follow REFERENCE.md's "Bootstrap main page"
+procedure first (company = `$company`, slug/type from Setup above), then
+continue.
 
-Check whether `analyses/{slug}/.notion` exists and contains `main_page_id`.
+Follow REFERENCE.md's "Stage sub-page push" procedure for Stage 1: file
+`01_research_collector_full.md`, delimiters `[RC_FULL_START]`/`[RC_FULL_END]`,
+title "Stage 1: Research Collector Briefing", `.notion` key `stage1_page_id`.
 
-**If `main_page_id` is missing (bootstrap):**
-1. Call `notion-create-pages` with `parent: {"type": "data_source_id",
-   "data_source_id": "8a829f17-bcb4-49d0-8562-26a0e6342df1"}` and:
-   - `properties.title` = `$company`
-   - `properties.Slug` = the slug from Setup
-   - `properties.Type` = `$type`
-   - `properties["date:Analysis Date:start"]` = today's date (YYYY-MM-DD)
-   - `properties["date:Analysis Date:is_datetime"]` = `0`
-   - `content` =
-     ```
-     > **Grade: pending**
-     > Run /executive to populate the grade, scorecard, and narrative.
-
-     ## Executive Narrative
-     _Pending — run /executive to populate this analysis._
-
-     ## Stage Reports
-     Full write-ups for each pipeline stage are linked as sub-pages below.
-     ```
-2. Write the returned page id and url to `analyses/{slug}/.notion` as
-   `main_page_id="..."` and `main_page_url="..."` (create the file if it
-   doesn't exist).
-
-**Stage 1 sub-page:**
-Take `01_research_collector_full.md`, strip the H1 title line and the
-`[RC_FULL_START]`/`[RC_FULL_END]` delimiter lines.
-
-- If `.notion` already has `stage1_page_id`, call `notion-update-page` with
-  `page_id` = that id, `command: replace_content`, `new_str` = the stripped
-  content.
-- Otherwise, call `notion-create-pages` with `parent: {"type": "page_id",
-  "page_id": main_page_id}`, `properties.title` = "Stage 1: Research
-  Collector Briefing", `content` = the stripped content. Append the returned
-  page id to `.notion` as `stage1_page_id="..."`.
-
-If any Notion call fails, state this clearly in your summary (e.g. "Notion
-sync failed: <error> — run /notion-sync to retry") rather than burying it —
-but don't block; the markdown outputs are the source of truth.
+End your summary with `Notion: {main_page_url}` on success, or the
+appropriate skip/failure line from REFERENCE.md.

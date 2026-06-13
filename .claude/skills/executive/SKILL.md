@@ -159,58 +159,14 @@ Para 4: <what needs to be true for the bull case to play out>
 
 ## Notion sync
 
-See `CLAUDE.md`'s "Notion sync" section for full conventions. If
-`mcp__notion__*` tools aren't available, state this in your summary
-(e.g. "Notion sync skipped — `notion` MCP not configured; run
-/notion-sync once it is") rather than failing silently.
+See `.claude/skills/notion-sync/REFERENCE.md` for full conventions
+(skip/failure wording, performance notes).
 
-Read `analyses/{slug}/.notion`. If it has no `main_page_id`, skip this
-section and note in your summary: "Notion sync skipped — run /research
-first to enable it (or /notion-sync to bootstrap and catch up in one go)."
+Follow REFERENCE.md's "Executive update-in-place" procedure: `Grade`,
+`Grade driver`, and `Status` come from STEP 2; the narrative paragraphs from
+STEP 3; the scorecard from STEP 1; the crux from STEP 4; "What Would Change
+This" from STEP 5; "Values & Judgment Flags" from STEP 6; "Next Actions" from
+STEP 7.
 
-Otherwise:
-
-1. **Update properties** — call `notion-update-page` with `page_id` =
-   `main_page_id`, `command: update_properties`:
-   - `Grade` = the letter grade from STEP 2
-   - `Grade driver` = the one-sentence grade driver from STEP 2
-   - `Status` = the investment status from STEP 2
-   - `date:Analysis Date:start` = today's date (YYYY-MM-DD)
-   - `date:Analysis Date:is_datetime` = `0`
-
-2. **Replace main page content** — call `notion-fetch` on `main_page_id` to
-   get its current content. Take everything from the start of the content up
-   to (not including) `## Stage Reports` as `old_str`. Build `new_str` from
-   the values produced in STEPS 1-7:
-   ```
-   > **Grade {grade} · {status}**
-   > {grade_driver}
-
-   ## Executive Narrative
-   {the four narrative paragraphs from STEP 3, separated by blank lines}
-
-   ## Scorecard
-   {markdown table: Dimension | Bear | Central | Bull | Driver — one row
-   per dimension scored in STEP 1}
-
-   ## The Crux
-   {STEP 4}
-
-   ## Values & Judgment Flags
-   {STEP 6, as a bulleted list, or "None identified."}
-
-   ## What Would Change This
-   {STEP 5 items, as a bulleted list}
-
-   ## Next Actions
-   {STEP 7 items, as a bulleted list}
-   ```
-   Then call `notion-update-page` with `page_id` = `main_page_id`,
-   `command: update_content`, and one entry in `content_updates` with this
-   `old_str`/`new_str` pair. Leave `## Stage Reports` and everything after it
-   untouched — that section lists the stage sub-pages as child pages, and
-   `replace_content` would delete them.
-
-If any Notion call fails, state this clearly in your summary (e.g. "Notion
-sync failed: <error> — run /notion-sync to retry") rather than burying it —
-but don't block; the markdown/JSON outputs are the source of truth.
+End your summary with `Notion: {main_page_url}` on success, or the
+appropriate skip/failure line from REFERENCE.md.

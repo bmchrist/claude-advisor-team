@@ -4,6 +4,11 @@ Multi-agent investment analysis. Each pipeline stage runs as an isolated
 skill with `context: fork` — it receives only the specific prior-stage files
 it needs, writes its outputs to disk, and returns a brief summary.
 
+Every fork also receives this entire file as context. In particular, the
+"System framing — counterinduction" section near the end is load-bearing —
+it's the only place each stage's counterinduction framing is defined, so any
+future edits that trim this file must preserve it unchanged.
+
 For human-facing usage instructions, see `README.md`. For status and planned
 changes, see `projectplan.md`.
 
@@ -122,23 +127,26 @@ not read the manifest — it works from the advisors' synthesized outputs. See
 
 Each pipeline stage (except the standalone `/ingest-materials`) mirrors its
 output to Notion as it finishes, so an analysis can be browsed without
-opening local files — Notion is the primary way the user reads finished analyses.
-This is best-effort and never blocks: if the Notion MCP tools aren't
-available, or any call fails, the skill **says so explicitly in its
-summary** (don't fail silently) and continues — the markdown/JSON outputs
-remain the source of truth, and `/notion-sync` (see below) can push the
-missing piece later without re-running the analysis.
+opening local files — Notion is the primary way the user reads finished
+analyses. This is best-effort and never blocks: if the Notion MCP tools
+aren't available, or any call fails, the skill says so explicitly in its
+summary and continues — the markdown/JSON outputs remain the source of
+truth, and `/notion-sync` can push the missing piece later without
+re-running the analysis.
+
+Canonical sync procedures (bootstrap, stage sub-page push, Executive
+update-in-place, skip/failure wording, the stage-facts table, and
+performance notes) live in `.claude/skills/notion-sync/REFERENCE.md` — every
+skill's `## Notion sync` section points there instead of repeating this
+content.
 
 ### Prerequisite
 
-Requires a Notion MCP server configured in Claude Code under the name
-`notion` (e.g. `claude mcp add --transport http notion
-https://mcp.notion.com/mcp`, or whatever connects to your existing Notion
-integration — the server just needs to expose the standard
-`notion-create-pages` / `notion-update-page` / `notion-fetch` tools under that
-name). If `mcp__notion__*` tools aren't present, the skill should still note
-this in its summary (e.g. "Notion sync skipped — `notion` MCP server not
-configured; run `/notion-sync` once it is") so the gap doesn't go unnoticed.
+Requires a Notion MCP server configured under the name `notion` (e.g.
+`claude mcp add --transport http notion https://mcp.notion.com/mcp`),
+exposing `notion-create-pages` / `notion-update-page` / `notion-fetch`. If
+`mcp__notion__*` tools aren't present, skills note this per REFERENCE.md's
+skip wording.
 
 ### Database
 
@@ -164,83 +172,17 @@ stage2c_page_id="..."
 stage3_page_id="..."
 stage4_page_id="..."
 ```
-If `main_page_id` is missing, only `/research` can create it (bootstrap,
-below); every other stage skips sync and says so in its summary ("run
-/research first to enable Notion sync, or /notion-sync to bootstrap and
-catch up in one go").
-
-### Bootstrap (research only)
-
-If `.notion` doesn't yet have `main_page_id`, `/research` creates the main
-page (parent = the data source above) with `Name`=company, `Slug`=slug,
-`Type`=type, `Analysis Date`=today. `Grade` and `Status` are left unset —
-`/executive` sets them later. Initial content:
-```
-> **Grade: pending**
-> Run /executive to populate the grade, scorecard, and narrative.
-
-## Executive Narrative
-_Pending — run /executive to populate this analysis._
-
-## Stage Reports
-Full write-ups for each pipeline stage are linked as sub-pages below.
-```
-Everything before `## Stage Reports` is a placeholder block that `/executive`
-replaces wholesale later. Write the returned page id/url to `.notion` as
-`main_page_id`/`main_page_url` immediately, before doing anything else.
-
-### Stage sub-pages (1, 2a, 2b, 2c, 3, 4 — not 5)
-
-Each of these stages pushes its `_full.md` as a sub-page of `main_page_id`,
-titled exactly: "Stage 1: Research Collector Briefing", "Stage 2a: Science
-Advisor Assessment", "Stage 2b: Investment Advisor Assessment", "Stage 2c:
-Political & Regulatory Risk Analysis", "Stage 3: Bull Case", "Stage 4: Bear
-Case".
-
-Before pushing, strip the H1 title line and the `[XXX_START]`/`[XXX_END]`
-delimiter lines from the file's content — the page title comes from
-`properties.title`, and the delimiters are fork-handoff markers, not content.
-Markdown tables in the body are fine; `notion-create-pages` renders them.
-
-- If `.notion` already has this stage's `_page_id` (re-run), call
-  `notion-update-page` with `command: replace_content` and the stripped
-  content as `new_str`. These sub-pages have no children, so this is always
-  safe.
-- Otherwise, call `notion-create-pages` with `parent: {"type": "page_id",
-  "page_id": main_page_id}`, then write the returned page id back to
-  `.notion` as `stageN_page_id`.
-
-### Executive sync
-
-`/executive` updates the main page in place rather than creating a sub-page:
-
-1. `notion-update-page` `command: update_properties` on `main_page_id`:
-   `Grade`, `Grade driver`, `Status`, and refresh `Analysis Date` to today.
-2. `notion-fetch` the main page, take everything from the start of its
-   content up to (not including) `## Stage Reports` as `old_str`, and call
-   `notion-update-page` `command: update_content` to replace it (`new_str`)
-   with the Grade callout + Executive Narrative + Scorecard table + Crux +
-   Values & Judgment Flags + What Would Change This + Next Actions —
-   mirroring the structure of `05_executive_data.json` /
-   `05_executive_narrative.md`. Leave `## Stage Reports` and its child
-   sub-pages untouched.
+If `main_page_id` is missing, only `/research` (or `/notion-sync`) can
+create it — see REFERENCE.md's "Bootstrap main page" procedure; every other
+stage skips sync until then.
 
 ### Standalone sync (`/notion-sync`)
 
-`/notion-sync [company-or-slug]` re-syncs the resolved analysis (see
-"State" above) without re-running any analysis stage. Use it after a stage
-reported a Notion failure (MCP not configured, a transient API error, etc.), or to
-bring an older analysis that predates Notion sync up to date.
-
-For each local output that exists, it (re-)pushes to Notion using the same
-logic as the owning stage above — bootstrapping the main page if
-`main_page_id` is missing and `01_research_collector_full.md` exists, then
-each stage 1/2a/2b/2c/3/4 sub-page if its `_full.md` exists, then the
-Executive sync if `05_executive_data.json` and `05_executive_narrative.md`
-exist. Existing pages are updated (`replace_content` / `update_content`);
-missing pages are created. It reports a per-stage status table (synced /
-updated / skipped — no local file / error) and updates `.notion`
-incrementally as it goes.
+`/notion-sync [company-or-slug]` re-syncs the resolved analysis (see "State"
+above) without re-running any analysis stage. Use it after a stage reported
+a Notion failure, or to bring an older analysis up to date. See
+`.claude/skills/notion-sync/SKILL.md` for the orchestration logic and
+REFERENCE.md for the underlying procedures.
 
 ## Slug convention
 
