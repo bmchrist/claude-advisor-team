@@ -61,6 +61,10 @@ Read the slug from the current analysis above. Write two files:
 **File 1:** `analyses/{slug}/02a_science_advisor_full.md`
 [ANALYSIS_START]
 <your full scientific assessment>
+
+## Data room gaps
+If no deal materials were provided (no `manifest.md` found in "Optional deal materials" above): write exactly `N/A — No data room materials provided`.
+Otherwise: list each document type you wanted but didn't have, the specific claim it would confirm or refute, and whether the gap is conclusion-material (i.e., filling it would change your assessment). Be specific — "gyrotron endurance test logs" not "more lab data". If you have everything you need, write "No significant gaps identified."
 [ANALYSIS_END]
 
 **File 2:** `analyses/{slug}/02a_science_advisor_summary.md`

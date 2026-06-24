@@ -82,6 +82,10 @@ Read the slug from the current analysis above. Write two files:
 **File 1:** `analyses/{slug}/02b_investment_advisor_full.md`
 [ANALYSIS_START]
 <your full investment analysis>
+
+## Data room gaps
+If no deal materials were provided (no `manifest.md` and no legacy `spv_deal_terms.md`/`financial_exhibits/` found in "Optional deal materials" above): write exactly `N/A — No data room materials provided`.
+Otherwise: list each document type you wanted but didn't have, the specific claim it would confirm or refute, and whether the gap is conclusion-material (i.e., filling it would change your assessment). Be specific — "audited FY24 financials" not "more financial data". If you have everything you need, write "No significant gaps identified."
 [ANALYSIS_END]
 
 **File 2:** `analyses/{slug}/02b_investment_advisor_summary.md`

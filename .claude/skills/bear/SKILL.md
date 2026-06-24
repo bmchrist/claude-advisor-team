@@ -76,6 +76,11 @@ Read the slug from the current analysis above. Write one file:
 **File:** `analyses/{slug}/04_bear_full.md`
 [BEAR_START]
 <your full bear analysis>
+
+## Unresolved data room gaps
+Review the `## Data room gaps` sections in each advisor full output you read above.
+- If all advisors wrote `N/A — No data room materials provided`: write exactly `N/A — No data room materials provided`.
+- Otherwise: identify the 2–3 gaps most material to the investment decision across all advisors. For each, state the document, which advisor flagged it, and your read on how the absence affects the overall risk picture. If no advisor flagged any conclusion-material gaps, write "No significant gaps identified."
 [BEAR_END]
 
 ## Notion sync
