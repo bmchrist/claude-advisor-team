@@ -62,6 +62,18 @@ Cover:
 - If you read exhibits from `00_deal_materials/manifest.md`: any cases where
   the Bull case or an advisor's reading of a specific chart, table, or
   document doesn't match what the source actually shows
+- Run the Cleantech-1.0 failure-marker checklist and call out any that fit:
+  · nameplate/announced capacity running far ahead of actual utilization
+    (the Northvolt ~5% tell);
+  · a thin or undisclosed-exit comparable set (~80% of climate acquisitions go
+    undisclosed — usually soft outcomes), implying a weak exit path;
+  · a commodity-margin trap (competing on price against cheap incumbents — silicon,
+    gas, Chinese cells — with no room to fund R&D and lean manufacturing at once);
+  · a FOAK capital gap with no patient/strategic/public capital lined up to cross it;
+  · subsidy dependence persisting past ~5 years with no parity in sight.
+- Pressure-test every "this time is different" claim Bull makes: the 2016 paper's
+  diagnosis recurred almost verbatim in the 2024–25 bankruptcies, so the burden of
+  proof sits on the structural-difference argument.
 
 Do not soften your critique. Give the strongest bear thesis.
 

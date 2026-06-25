@@ -221,12 +221,31 @@ alongside the primary reading:
   the risk
 - Strong orderbook = genuine demand OR policy hedging by buyers
 - First-mover position = durable moat OR first-mover disadvantage
+- Offtake / PPA in hand = bankable demand OR an uncreditworthy counterparty
+  and escape clauses that evaporate under stress
+- Nameplate / announced capacity = scale achieved OR a vanity figure divorced
+  from actual utilization (Northvolt ran a 16 GWh line at ~5% of capacity)
+- Subsidy-backed unit economics = durable cost advantage OR a policy cliff one
+  election from repricing (IRA 2022 → OBBBA 2025)
+- Named acquirer interest = a real exit path OR a thin field that can vanish
+  (<4% of Cleantech-1.0 startups exited favorably; oil majors made zero
+  cleantech startup acquisitions in 2025)
 
-Define "working": repeat orders without subsidy dependence, private capital
-at risk, costs approaching parity, high utilization.
+Classify the core innovation as ATOMS (new materials / chemistry / process, or
+hardware integration) or BITS (software, deployment / finance). In Cleantech 1.0,
+atoms returned a fraction of invested capital while software returned ~3.5x; atoms
+carry far heavier scale-up and capital-intensity risk and deserve a correspondingly
+larger discount. Naming the bucket is among the most return-predictive calls a
+stage can make.
 
-Define "failing": niche-shifting, order cancellations, low utilization, cost
-curves not improving, continued subsidy dependence after 5+ years.
+Define "working": repeat orders without subsidy dependence; private capital at
+risk; costs approaching parity; high utilization (actual throughput vs. nameplate,
+not announced capacity); bankable offtake from a creditworthy counterparty.
+
+Define "failing": niche-shifting; order cancellations; low utilization or nameplate
+capacity far ahead of real output; flat cost curves; continued subsidy dependence
+after 5+ years; demand concentrated in weak/uncreditworthy offtakers or riddled
+with escape clauses.
 
 Always explicitly state what evidence would change your conclusion. Stay in
 your assigned role. Give the strongest version of your perspective.

@@ -93,11 +93,26 @@ project is tied to a specific site, asset, or facility, research that site's
 prior history — earlier projects, attempts, environmental incidents, or
 regulatory actions there; site track records are often the strongest
 available signal independent of the current company's technology.
+- Classify the core innovation into one of the five Cleantech-1.0 buckets
+  (materials/chemistry/process · hardware integration · software/appliance ·
+  deployment/finance · other) and state whether it is fundamentally ATOMS or BITS.
+  This single tag is strongly return-predictive; carry it forward explicitly.
+- For any capacity / output / capital figure, distinguish ANNOUNCED or NAMEPLATE
+  from ACTUALLY DEPLOYED or UTILIZED (e.g. "16 GWh nameplate; ~0.8 GWh shipped").
+  Tag promotional capacity numbers [COMPANY CLAIM].
+- For any offtake / PPA / LOI, capture the COUNTERPARTY and its creditworthiness,
+  contracted volume, price, term, and any conditions or escape clauses — not just
+  the headline. An offtake is only as good as the buyer.
 
 SECTION 4 — POLITICAL & REGULATORY BRIEFING
 Regulatory environment, policy dependencies, approvals still required,
 geopolitical factors, government partnerships or contracts, political durability
 of tailwinds.
+- Identify which specific US credits the company relies on and whether each
+  survived recent legislation (45Q carbon-capture and 45Z clean-fuel retained;
+  consumer-EV and residential-solar credits repealed; wind/solar ITC/PTC on an
+  accelerated phase-out under OBBBA, July 2025). Note any FEOC / Chinese-supply-
+  chain content exposure that could disqualify credits or trigger tariffs.
 
 SECTION 5 — INITIAL COUNTERINDUCTION FLAGS
 2-3 signals that look positive but carry a plausible rival reading. The single

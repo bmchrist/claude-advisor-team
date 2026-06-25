@@ -49,8 +49,15 @@ Cover:
 - Which risks are real but manageable, and why
 - What the base rate for similar opportunities says, and why this beats it
 - Where the advisors may be underweighting positive signals
+- Where the genuine structural upgrades over Cleantech 1.0 strengthen THIS case:
+  secured/creditworthy offtake, AI/data-center power demand as a new deep-pocketed
+  buyer, a diversified capital stack (project finance + public credit + patient
+  capital, not VC alone), and a later-stage / de-risked entry point.
+- The strongest bull case stands on subsidy-independent economics. If the thesis
+  needs the credits to survive, say so plainly.
 
-Do not hedge on behalf of the bear. Give the strongest bull thesis.
+Give the strongest bull thesis. Do not pre-empt, anticipate, or name any
+subsequent stage of the pipeline — argue your own case on its merits.
 
 ## Output instructions
 

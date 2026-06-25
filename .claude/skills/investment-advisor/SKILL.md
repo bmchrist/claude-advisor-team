@@ -59,9 +59,19 @@ Cover:
 2. Infrastructure and deployment barriers (permitting, grid, supply chain)
 3. Bankability — can this get project finance? What does a lender need to see?
 4. Subsidy/policy dependence — does the commercial case survive without it?
+   Model unit economics with subsidies stripped out (the OBBBA-style repeal
+   case), not just at face value.
 5. Business model clarity — how does it actually make money?
 6. Counterinduction: what does this look like if the economics never close
    without permanent policy support?
+7. FOAK financing: who funds the first commercial plant, and on what terms?
+   Weigh capital intensity against the patience of the capital actually in the
+   deal — a mismatch here is what killed Northvolt and the Cleantech-1.0
+   materials cohort.
+8. Exit / acquirer mapping: name the SPECIFIC, currently-active acquirers for
+   this asset. Do not assume a strategic bid appears — <4% of Cleantech-1.0
+   startups exited favorably and oil majors made zero cleantech startup
+   acquisitions in 2025.
 
 For deal analyses, also cover: asset quality and risk (offtake, currency,
 counterparty, construction), capital structure, management track record,
@@ -70,6 +80,8 @@ and exit and liquidity path. Use the financial exhibit images (if present) as
 your primary source for projections, valuations, and capitalization — note
 any discrepancies between the deck's projections and your own assessment of
 the underlying fundamentals.
+For offtake specifically, assess the counterparty's credit and the contract's
+escape clauses, not just headline volume.
 
 ## Output instructions
 

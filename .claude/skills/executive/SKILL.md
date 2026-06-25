@@ -96,11 +96,39 @@ Hard rule: a `TRACK` status is invalid without at least one dated row in the
 Catalysts & Triggers table (STEP 6). If no dated catalyst exists, either find
 one or explain in `status_reason` why the position is currently untriggerable.
 
+### STEP 2B — RISK CHARACTERIZATION
+
+State, on two explicit axes, what KIND of risk this is and how SEVERE — separate
+from the grade (how good) and confidence (how proven). This is the line read first.
+
+Risk LEVEL — severity of the downside if the bear case lands (pick one):
+  CONTAINED — capital-light / staged; failure loses a fraction, recoverable
+  MODERATE  — meaningful loss, partial recovery plausible (assets, IP, acquihire)
+  SEVERE    — most capital impaired; capital-intensive with thin salvage value
+  BINARY    — total-loss / all-or-nothing; one unproven step gates everything
+              (typical of FOAK frontier hard-tech)
+
+Risk TYPE — the dominant failure mode(s), primary first:
+  TECHNOLOGY_SCALE_UP        — invention or FOAK manufacturing/yield risk
+                               (the Cleantech-1.0 valley of death)
+  COMMERCIAL_UNIT_ECONOMICS  — never reaches parity / commodity-margin trap
+  POLICY_SUBSIDY_CLIFF       — economics depend on credits exposed to repeal
+  COUNTERPARTY_OFFTAKE       — demand concentrated in weak or uncommitted buyers
+  CAPITAL_STRUCTURE_FINANCING— can't fund the next scale step on viable terms
+  EXECUTION                  — team/operational complexity, supply chain, permitting
+
+Name a primary type and any material secondary types. Level and primary type must be
+consistent with the crux (STEP 4) and the lowest-scoring load-bearing scorecard row —
+if they disagree, reconcile before finalizing. Close with one sentence: level +
+primary type + why (e.g. "BINARY / TECHNOLOGY_SCALE_UP: the 1 km drilling test gates
+the entire thesis; everything downstream is modeled").
+
 ### STEP 3 — NARRATIVE (exactly four paragraphs)
 
 Para 1: What this is and why it's on the radar (factual, 2-3 sentences)
 Para 2: The bull case in specific terms (no hedging, 2-3 sentences)
-Para 3: The bear case in specific terms (no hedging, 2-3 sentences)
+Para 3: The bear case in specific terms (no hedging, 2-3 sentences) — name the risk
+        level and primary type from STEP 2B in plain language
 Para 4: What needs to be true for the bull case to play out
 
 ### STEP 4 — CRUX
@@ -187,6 +215,10 @@ Valid JSON, no trailing commas, no comments:
   "status": "<INVEST|TRACK|INVESTIGATE|PASS>",
   "grade_driver": "<one sentence — what drives the grade>",
   "status_reason": "<one sentence — the decision rule behind the status; always populated, distinct from grade_driver>",
+  "risk_level": "<CONTAINED|MODERATE|SEVERE|BINARY>",
+  "risk_primary_type": "<TECHNOLOGY_SCALE_UP|COMMERCIAL_UNIT_ECONOMICS|POLICY_SUBSIDY_CLIFF|COUNTERPARTY_OFFTAKE|CAPITAL_STRUCTURE_FINANCING|EXECUTION>",
+  "risk_secondary_types": ["<type>"],
+  "risk_characterization": "<one sentence: level + primary type + why, tied to the crux>",
   "scores": {
     "<Dimension>": {"bear": N, "central": N, "bull": N, "driver": "<10 words max>"}
   },
@@ -228,7 +260,7 @@ See `.claude/skills/notion-sync/REFERENCE.md` for full conventions
 
 Follow REFERENCE.md's "Executive update-in-place" procedure: `Grade`,
 `Grade driver`, and `Status` come from STEP 2 (with `status_reason` the
-status decision-rule); the narrative paragraphs from STEP 3; the scorecard
+status decision-rule); the Risk Level / Type / characterization from STEP 2B (surface as a callout directly under Grade/Status); the narrative paragraphs from STEP 3; the scorecard
 from STEP 1; the crux from STEP 4; "Catalysts & Triggers" from STEP 6;
 "Sourcing Strength" from STEP 7; "Deal Terms & Price Sensitivity" (DEAL only)
 from STEP 8; "Values & Judgment Flags" from STEP 9; "What Would Change This"

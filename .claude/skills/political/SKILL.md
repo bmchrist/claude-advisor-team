@@ -46,14 +46,20 @@ Cover:
    political continuity risk
 2. Country/jurisdiction risk — realistic downside if political environment shifts
 3. Stakeholder map — who benefits, who loses, who can block or undermine this?
-4. US political context — ITC / PTC / IRA / tariff exposure
+4. US political context — ITC / PTC / IRA / tariff exposure, and specifically
+   which credits the company relies on and whether each survived recent
+   legislation (45Q and 45Z retained; consumer-EV / residential-solar repealed;
+   wind/solar ITC/PTC accelerated phase-out under OBBBA, July 2025). Flag
+   FEOC / Chinese-supply-chain content restrictions that could disqualify
+   credits or impose tariffs.
 5. Region-specific market context — PPA enforcement track record, utility
    creditworthiness, currency repatriation mechanics, permitting culture vs.
    law on paper, for any non-US region (e.g. Africa, Latin America, Southeast
    Asia) that is material to the company's actual or stated target markets
    per the RC briefing's operations/market sections
 6. Counterinduction: what does this look like if political tailwinds reverse
-   in the next 3-5 years?
+   in the next 3-5 years? Treat the IRA→OBBBA reversal as the base-rate case
+   for policy durability, not a tail risk.
 
 Items 4 and 5 are conditional on relevance to this company. If a region or
 jurisdiction covered by item 4 or 5 is not material to this company's actual

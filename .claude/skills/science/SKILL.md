@@ -45,10 +45,16 @@ technical merit. Be direct — give your actual assessment, not balanced hedging
 Cover:
 1. Technology Readiness Level (TRL 1-9) and what reaching the next level requires
 2. The core technical risk — what has to be true for this to work at scale
-3. What the last 2-3 years of research and deployment data actually show
-4. Counterinduction: what does the scientific picture look like if this
+3. Invention risk vs. scale-up / manufacturing-yield risk: separate "does the
+   science work?" from "can it be built at commercial scale and yield?". The
+   Cleantech-1.0 valley of death was overwhelmingly the second — CIGS thin-film
+   worked in the lab and died at factory scale. Give an explicit first-of-a-kind
+   (FOAK) manufacturability read, and treat lab efficiency or pilot records as
+   necessary-but-not-sufficient.
+4. What the last 2-3 years of research and deployment data actually show
+5. Counterinduction: what does the scientific picture look like if this
    technology is fundamentally stuck, not progressing?
-5. What evidence would move your assessment significantly in either direction?
+6. What evidence would move your assessment significantly in either direction?
 
 ## Output instructions
 
