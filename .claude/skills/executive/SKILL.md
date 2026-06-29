@@ -47,12 +47,34 @@ Score each applicable dimension on a 1-5 integer scale, three times:
   central: your best estimate given all available evidence
   bull:    score if the bull thesis is correct
 
-Score meanings:
-  5 = Strong positive signal, well-evidenced
-  4 = Positive signal with manageable risks
+The score is **Merit** — the size, durability, and credibility of the win on
+this dimension *if the thesis holds*. Score the substance, not the proof: how
+proven the dimension is right now lives in Confidence (STEP 1B), not here.
+
+Merit (substance only; do NOT dock for lack of evidence):
+  5 = Exceptional / best-in-class strength on this dimension
+  4 = Clear positive
   3 = Genuinely neutral or mixed
-  2 = Negative signal with some mitigating factors
-  1 = Strong negative signal, significant concern
+  2 = Negative, partly mitigated
+  1 = Severe negative, near-disqualifying
+
+Two rules keep Merit honest — it must be able to score *low*, not just default
+high once you "assume it works":
+  - Assume resolution of *evidence/proof questions only* (is the pilot real, is
+    the magnet validated). Do NOT suspend the bear's *structural* objections —
+    a small or commoditized market, an uncreditworthy offtaker, escape clauses,
+    a subsidy cliff, ATOMS-not-BITS scale/capital-intensity risk. Those are
+    merit defects and still suppress the score even granting the tech works.
+  - Reward magnitude and defensibility of the prize, not the binary "good if it
+    works." A seed-stage company whose win — even fully granted — is a small
+    market with no moat and commodity margins scores LOW Merit. A frontier deal
+    with a large, defensible prize scores HIGH Merit at the same low Confidence.
+    This separation (strong-but-unproven vs. no-real-merit) is the whole point;
+    if every dimension drifts up, you are scoring "assume it works," not Merit.
+
+"Well-evidenced" is deliberately removed from the 5 so the top of the scale is
+reachable before commercial proof exists. Per CLAUDE.md's counterinduction
+framing, name the ATOMS/BITS bucket where it bears on a dimension's Merit.
 
 Wide Bear/Bull spreads signal genuinely contested dimensions.
 Do not compress spreads toward the middle — that removes information.
@@ -73,17 +95,85 @@ Subsidy Independence with:
 
 For each dimension, write a key driver of the Central score in 10 words max.
 
+### STEP 1B — CONFIDENCE (evidence stage, two axes)
+
+Merit asks *how good if it holds*; Confidence asks *how proven now*. Score
+Confidence on the C1-C5 stage below, anchored to the sourcing tags STEP 7 rolls up.
+
+  C5 Validated    — independent / third-party proof at commercial-relevant scale; load-bearing facts [VERIFIED]
+  C4 Demonstrated — first-party proof at pilot / sub-scale; [VERIFIED] but first-party
+  C3 Indicative   — partial or analogous evidence; key claims thinly sourced ([SINGLE SOURCE])
+  C2 Projected    — modeled / asserted; the core proof point not yet attempted ([COMPANY CLAIM] + models)
+  C1 Asserted     — load-bearing facts are company claims only ([COMPANY CLAIM] / [NOT FOUND])
+
+Report Confidence on **two axes** — a deal can be far more proven on one than the
+other (a demonstrated pilot with no revenue is Tech-proven but Commercial-unproven,
+and collapsing the two to one number hides exactly that):
+
+  - **Technical Confidence** — is the technology / science proven to work at
+    relevant scale? Anchored to Technical Readiness (and any technical dimension
+    the crux names). POLICY: anchor to Implementation Risk.
+  - **Commercial Confidence** — is the business proven — economics, demand, deal
+    structure? Anchored to the *lower* of Commercial Viability and (DEAL)
+    Investment Structure Quality. POLICY: anchor to Investable Signal.
+
+Also report each load-bearing dimension's own stage in the scorecard — that is the
+source data the two axes roll up. The **gate Confidence** used by the STEP 2 status
+matrix is the *lower of the two axes*: you are only committable once both the tech
+and the business are proven. `confidence_driver` names which axis binds (the lower)
+and the single fact it hinges on. No new tagging work — this surfaces what STEP 1 /
+STEP 7 already tagged.
+
 ### STEP 2 — GRADE AND STATUS
 
-Overall letter grade: A / B / C / D / F (with + or - if warranted).
-This is a gestalt judgment, not a mathematical average.
-Write one sentence explaining what most determines the grade.
+The letter grades **Merit only**. Confidence (STEP 1B) rides alongside in the
+display and drives the status matrix below — it is never averaged into the letter.
 
-Investment status — pick one:
+Form the letter as a gestalt read of the **load-bearing dimensions** (Technical
+Readiness, Commercial Viability, and (DEAL) Investment Structure Quality — POLICY:
+Implementation Risk, Investable Signal — plus any crux dimension), using the band
+descriptors below as orientation. Do NOT average all ten dimensions — peripheral
+rows (Country, Political Stability) must not dilute the signal back toward the
+middle. The descriptors are gestalt guides; only the cap/floor rules are hard gates.
+
+Bands (Merit):
+  A / A-   Exceptional. >=2 load-bearing dimensions at 5, none below 3, no values flag.
+  B+/B/B-  Strong. Several 4s; at most one load-bearing dimension at 2; no 1s on a load-bearing row.
+  C+/C/C-  Mixed. Real strengths offset by >=1 serious concern, or a 1-2 on a load-bearing dimension.
+  D+/D/D-  Weak. Multiple core dimensions <=2, or one near-disqualifying flaw. A no-real-merit deal lands here even at high Confidence.
+  F        Disqualifying flaw on a load-bearing dimension or a values gate.
+
+Cap / floor rules — hard gates, applied *after* the gestalt read; they can only
+drag the letter down, never lift it:
+  - A central 1 on a load-bearing dimension (Technical Readiness, Commercial
+    Viability, or (DEAL) Investment Structure Quality) caps the letter at C+.
+  - An unmitigated values FLAG (governance, dual-use, etc.) caps at B.
+  - The A range requires >=2 fives — a deal cannot reach A by being uniformly "fine."
+
+Write one sentence (`grade_driver`) explaining what most determines the Merit letter.
+
+Investment status — set by the Merit x Confidence matrix (gate Confidence =
+lower of the two STEP 1B axes), not free-form:
+
+  |                  | Merit A-B   | Merit C             | Merit D-F |
+  |------------------|-------------|---------------------|-----------|
+  | Confidence C4-C5 | INVEST      | TRACK               | PASS      |
+  | Confidence C3    | TRACK       | INVESTIGATE         | PASS      |
+  | Confidence C1-C2 | INVESTIGATE | INVESTIGATE / TRACK | PASS      |
+
   INVEST      — conviction positive, proceed to commitment
   TRACK       — interesting but insufficient signal; monitor and revisit
   INVESTIGATE — specific high-value unknowns worth actively resolving
   PASS        — not a fit; state primary reason in one sentence
+
+A strong-but-unproven deal sits at e.g. B / gate C2 -> INVESTIGATE — high Merit
+held only by low Confidence — and climbs to INVEST as Confidence rises, *without
+its Merit letter being marked down in the meantime*. A no-real-merit deal lands
+Merit D-F -> PASS regardless of how well or poorly evidenced it is. Where the
+matrix offers a choice (Merit C / gate C1-C2), pick on whether a near-term catalyst
+can resolve the binding axis (INVESTIGATE) or not (TRACK). Because the binding axis
+is named, two deals at the same gate read differently — a Tech C4 / Comm C2 deal is
+one resolved gate from investable; a Tech C2 / Comm C2 deal needs both.
 
 Always populate `status_reason` (not only for PASS): one sentence stating the
 decision *rule* behind the status, distinct from `grade_driver` (which states
@@ -211,16 +301,20 @@ Valid JSON, no trailing commas, no comments:
   "subject": "<company name>",
   "date": "<YYYY-MM-DD>",
   "analysis_type": "<type>",
-  "grade": "<letter>",
+  "grade": "<Merit letter>",
+  "technical_confidence": "<C1-C5 — is the tech proven; STEP 1B>",
+  "commercial_confidence": "<C1-C5 — is the business proven; STEP 1B>",
+  "confidence_driver": "<one sentence — which axis binds (the lower) and the fact it hinges on>",
+  "grade_display": "<paired form, e.g. 'B- / Tech C4 · Comm C2'>",
   "status": "<INVEST|TRACK|INVESTIGATE|PASS>",
-  "grade_driver": "<one sentence — what drives the grade>",
+  "grade_driver": "<one sentence — what drives the Merit letter>",
   "status_reason": "<one sentence — the decision rule behind the status; always populated, distinct from grade_driver>",
   "risk_level": "<CONTAINED|MODERATE|SEVERE|BINARY>",
   "risk_primary_type": "<TECHNOLOGY_SCALE_UP|COMMERCIAL_UNIT_ECONOMICS|POLICY_SUBSIDY_CLIFF|COUNTERPARTY_OFFTAKE|CAPITAL_STRUCTURE_FINANCING|EXECUTION>",
   "risk_secondary_types": ["<type>"],
   "risk_characterization": "<one sentence: level + primary type + why, tied to the crux>",
   "scores": {
-    "<Dimension>": {"bear": N, "central": N, "bull": N, "driver": "<10 words max>"}
+    "<Dimension>": {"bear": N, "central": N, "bull": N, "driver": "<10 words max>", "confidence": "<C1-C5; load-bearing dimensions only, omit key for others>"}
   },
   "crux": "<2-3 sentences; name the selection rule that chose this crux>",
   "evidence_to_change": ["<item 1>", "<item 2>"],

@@ -85,7 +85,7 @@ to copy materials in from elsewhere, or place files directly in
 
 Before writing anything, check whether `analyses/{slug}/00_deal_materials/materials_digest.md`
 and/or `analyses/{slug}/00_deal_materials/manifest.md` already exist (e.g. from
-a prior run, or hand-curated like the Quaise example). If they exist, use the
+a prior run, or hand-curated). If they exist, use the
 Read tool to read them first and **merge** — append new sections/rows for the
 newly-processed files rather than discarding existing content. Don't duplicate
 entries for files already covered.
@@ -115,15 +115,13 @@ For every file in `raw_dir`, classify each section/page/sheet as either
 ### PDF files
 Use the `pdf` skill to inspect the document page by page.
 - Narrative pages → summarize into `materials_digest.md` (don't transcribe
-  verbatim; condense to the key claims, framing, and figures, as in the
-  existing `pitch_deck_digest.md` style).
+  verbatim; condense to the key claims, framing, and figures — capture what
+  the company asserts and the numbers it cites, not the prose around them).
 - Exhibit pages (financial tables, cap tables, charts, technical diagrams,
   legal/term pages) → render each to a PNG saved under
   `analyses/{slug}/00_deal_materials/exhibits/`, named with a numeric prefix
-  and a short descriptive slug (e.g. `01_revenue_ebitda_fcf_projections.png`,
-  following the convention already used in
-  `analyses/quaise_energy/00_deal_materials/financial_exhibits/`). Add one
-  manifest row per exhibit.
+  and a short descriptive slug (e.g. `01_revenue_ebitda_fcf_projections.png`).
+  Add one manifest row per exhibit.
 
 ### Excel / CSV files
 Use the `xlsx` skill to inspect each workbook/sheet.
@@ -164,8 +162,7 @@ Ben may want to review and adjust `manifest.md` before running `/research`.
 
 **`analyses/{slug}/00_deal_materials/materials_digest.md`**
 
-A prose digest, generalizing the existing `pitch_deck_digest.md` pattern.
-Structure:
+A prose digest. Structure:
 - A "Source" line per input file: filename, what it is, and (for PDFs) which
   pages were summarized vs. extracted as exhibits.
 - Topical sections as appropriate to the content (e.g. Company framing,
@@ -174,8 +171,10 @@ Structure:
   content).
 - A closing "Counterinduction starting points for Research Collector" section:
   2-4 claims from the materials that look positive but carry a plausible
-  rival reading, framed for the Research Collector to investigate (mirroring
-  `analyses/quaise_energy/00_deal_materials/pitch_deck_digest.md`).
+  rival reading, framed for the Research Collector to investigate. Write each
+  as the claim, then the rival reading and what to check — e.g. "Signed 200 MW
+  of offtake LOIs — but LOIs are non-binding; check counterparty
+  creditworthiness and how much survives diligence."
 
 **`analyses/{slug}/00_deal_materials/manifest.md`**
 

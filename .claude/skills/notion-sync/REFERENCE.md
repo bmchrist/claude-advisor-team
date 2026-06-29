@@ -104,8 +104,12 @@ Executive (and `/notion-sync` when `05_executive_data.json` /
 creating a sub-page.
 
 1. `notion-update-page` `command: update_properties` on `main_page_id`:
-   - `Grade` = letter grade
+   - `Grade` = Merit letter grade
    - `Grade driver` = one-sentence grade driver
+   - `Technical Confidence` = technical confidence axis (C1-C5) from STEP 1B
+   - `Commercial Confidence` = commercial confidence axis (C1-C5) from STEP 1B
+     (both best-effort: if a `* Confidence` select isn't present on the database,
+     skip that property and note it — don't fail the sync)
    - `Status` = investment status (INVEST/TRACK/INVESTIGATE/PASS)
    - `date:Analysis Date:start` = today's date (YYYY-MM-DD)
    - `date:Analysis Date:is_datetime` = `0`
@@ -113,16 +117,18 @@ creating a sub-page.
    content up to (not including) `## Stage Reports` as `old_str`. Build
    `new_str`:
    ```
-   > **Grade {grade} · {status}**
+   > **Grade {grade_display} · {status}**
    > {grade_driver}
+   > _Confidence: Tech {technical_confidence} · Comm {commercial_confidence} — {confidence_driver}_
    > _Status rule: {status_reason}_
 
    ## Executive Narrative
    {four narrative paragraphs, separated by blank lines}
 
    ## Scorecard
-   {markdown table: Dimension | Bear | Central | Bull | Driver — one row
-   per scored dimension}
+   {markdown table: Dimension | Bear | Central | Bull | Confidence | Driver —
+   one row per scored dimension; Confidence (C1-C5) shown for load-bearing rows,
+   blank for the rest}
 
    ## The Crux
    {crux}

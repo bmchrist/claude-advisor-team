@@ -99,8 +99,7 @@ SPV/legal docs), process them before running `/research`:
    automatically, and advisors consult `manifest.md` for exhibits routed to
    them
 
-Deal-specific terms (e.g. `spv_deal_terms.md`) can still be added by hand
-alongside the generated files. See `projectplan.md` for the full digest +
+See `projectplan.md` for the full digest +
 manifest design and the `[DATA ROOM]` evidence tag (note: per-stage
 manifest-reading by RC/advisors/Bear is still being rolled out).
 

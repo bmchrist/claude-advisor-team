@@ -38,14 +38,8 @@ For deal analyses, also check `analyses/{slug}/00_deal_materials/manifest.md`
 - The Research Collector's report (required reading above) already folds in
   `materials_digest.md`, including any deal/SPV structure section, so you
   don't need to read that file separately.
-- Older analyses created before `/ingest-materials` existed may instead have
-  a hand-curated `analyses/{slug}/00_deal_materials/spv_deal_terms.md` and/or
-  `analyses/{slug}/00_deal_materials/financial_exhibits/` directory. If
-  `manifest.md` is absent but either of these exists, read them the same way
-  (spv_deal_terms.md for vehicle structure/fees/terms; every image in
-  financial_exhibits/ for projections and cap tables).
-- If none of the above exist, proceed without deal materials; this is normal
-  for non-deal (TECHNOLOGY/POLICY) analyses.
+- If `manifest.md` doesn't exist, proceed without deal materials; this is
+  normal for non-deal (TECHNOLOGY/POLICY) analyses.
 
 ## Your task
 
@@ -96,7 +90,7 @@ Read the slug from the current analysis above. Write two files:
 <your full investment analysis>
 
 ## Data room gaps
-If no deal materials were provided (no `manifest.md` and no legacy `spv_deal_terms.md`/`financial_exhibits/` found in "Optional deal materials" above): write exactly `N/A — No data room materials provided`.
+If no deal materials were provided (no `manifest.md` found in "Optional deal materials" above): write exactly `N/A — No data room materials provided`.
 Otherwise: list each document type you wanted but didn't have, the specific claim it would confirm or refute, and whether the gap is conclusion-material (i.e., filling it would change your assessment). Be specific — "audited FY24 financials" not "more financial data". If you have everything you need, write "No significant gaps identified."
 [ANALYSIS_END]
 
@@ -114,7 +108,7 @@ Otherwise: list each document type you wanted but didn't have, the specific clai
 <specific and falsifiable>
 
 (d) Deal terms — DEAL analyses only:
-If `materials_digest.md` (or legacy `spv_deal_terms.md`) contains valuation,
+If `materials_digest.md` contains valuation,
 round-size, instrument, or other price-relevant terms, state them here under a
 `## Deal terms` heading: valuation/cap, round size, instrument, and any
 price-relevant conditions. The Executive stage sources its deal-terms &
