@@ -353,8 +353,8 @@ See `.claude/skills/notion-sync/REFERENCE.md` for full conventions
 (skip/failure wording, performance notes).
 
 Follow REFERENCE.md's "Executive update-in-place" procedure: `Grade`,
-`Grade driver`, and `Status` come from STEP 2 (with `status_reason` the
-status decision-rule); the Risk Level / Type / characterization from STEP 2B (surface as a callout directly under Grade/Status); the narrative paragraphs from STEP 3; the scorecard
+`Grade driver`, `Technical Confidence`, `Commercial Confidence`, and `Status`
+come from STEP 2 (with `status_reason` the status decision-rule); the Risk Level / Type / characterization from STEP 2B (surface as a callout directly under Grade/Status); the narrative paragraphs from STEP 3; the scorecard
 from STEP 1; the crux from STEP 4; "Catalysts & Triggers" from STEP 6;
 "Sourcing Strength" from STEP 7; "Deal Terms & Price Sensitivity" (DEAL only)
 from STEP 8; "Values & Judgment Flags" from STEP 9; "What Would Change This"

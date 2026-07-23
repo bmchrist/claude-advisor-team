@@ -103,16 +103,19 @@ Executive (and `/notion-sync` when `05_executive_data.json` /
 `05_executive_narrative.md` exist) updates the main page rather than
 creating a sub-page.
 
-1. `notion-update-page` `command: update_properties` on `main_page_id`:
-   - `Grade` = Merit letter grade
-   - `Grade driver` = one-sentence grade driver
-   - `Technical Confidence` = technical confidence axis (C1-C5) from STEP 1B
-   - `Commercial Confidence` = commercial confidence axis (C1-C5) from STEP 1B
-     (both best-effort: if a `* Confidence` select isn't present on the database,
-     skip that property and note it — don't fail the sync)
-   - `Status` = investment status (INVEST/TRACK/INVESTIGATE/PASS)
+1. `notion-update-page` `command: update_properties` on `main_page_id`, setting
+   **all seven** of these properties in a single call — do not omit any:
+   - `Grade` = `grade` from JSON (Merit letter, e.g. `C+`)
+   - `Grade driver` = `grade_driver` from JSON (one sentence)
+   - `Technical Confidence` = `technical_confidence` from JSON (e.g. `C2`)
+   - `Commercial Confidence` = `commercial_confidence` from JSON (e.g. `C1`)
+   - `Status` = `status` from JSON (`INVEST`/`TRACK`/`INVESTIGATE`/`PASS`)
    - `date:Analysis Date:start` = today's date (YYYY-MM-DD)
    - `date:Analysis Date:is_datetime` = `0`
+
+   All seven properties exist in the database schema. If the API rejects a
+   property, note it explicitly and retry the call without that property —
+   do not silently drop properties pre-emptively.
 2. `notion-fetch` the main page. Take everything from the start of its
    content up to (not including) `## Stage Reports` as `old_str`. Build
    `new_str`:
