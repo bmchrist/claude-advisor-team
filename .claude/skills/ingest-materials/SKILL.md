@@ -3,7 +3,7 @@ name: Ingest Materials
 description: Process raw deal materials (pitch decks, financial models, legal docs, images) into a digest, manifest, and exhibit images for an analysis. Run before /research.
 disable-model-invocation: true
 context: fork
-model: claude-opus-4-6
+model: opus
 allowed-tools: Read Write Bash
 argument-hint: "<company-or-slug> [source-folder-or-file]"
 arguments: target source

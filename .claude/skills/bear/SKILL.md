@@ -3,7 +3,7 @@ name: Bear
 description: Run the Bear stage for the current analysis. Generates rival readings against the Bull thesis.
 disable-model-invocation: true
 context: fork
-model: claude-opus-4-6
+model: opus
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page
 argument-hint: "[company-or-slug]"
 arguments: target

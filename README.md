@@ -140,8 +140,8 @@ Two definitions worth knowing when reading advisor outputs:
 
 ## Models
 
-- `claude-sonnet-4-6`: Research, Science Advisor, Political Advisor, Bull, Notion Sync
-- `claude-opus-4-6`: Investment Advisor, Bear, Executive, Ingest Materials
+- `claude-sonnet-5`: Science Advisor, Political Advisor, Bull, Notion Sync
+- `claude-opus-5`: Research, Investment Advisor, Bear, Executive, Ingest Materials
   (higher-judgment stages — Investment Advisor is grouped here intentionally,
   for deal-terms judgment, even though the other advisors run on sonnet)
 

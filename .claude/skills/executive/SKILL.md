@@ -3,7 +3,7 @@ name: Executive
 description: Run the Executive synthesis stage. Produces scorecard data and narrative, and syncs them to Notion.
 disable-model-invocation: true
 context: fork
-model: claude-opus-4-6
+model: opus
 allowed-tools: Read Write Bash mcp__notion__notion-update-page mcp__notion__notion-fetch
 argument-hint: "[company-or-slug]"
 arguments: target

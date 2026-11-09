@@ -3,7 +3,7 @@ name: Notion Sync
 description: Push or re-push one or all stages of the current analysis to Notion from its local outputs, without re-running any pipeline stage. Accepts an optional stage filter to re-push only one stage. Use after a sync failure or to bring a specific stage up to date.
 disable-model-invocation: true
 context: fork
-model: claude-sonnet-4-6
+model: sonnet
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page mcp__notion__notion-fetch
 argument-hint: "[company-or-slug] [stage]"
 arguments: target stage

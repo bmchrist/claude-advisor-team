@@ -3,7 +3,7 @@ name: Research Collector
 description: Start a new investment analysis. Provide company name and analysis type (TECHNOLOGY, DEAL, or POLICY).
 disable-model-invocation: true
 context: fork
-model: claude-sonnet-4-6
+model: opus
 allowed-tools: WebSearch Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page
 argument-hint: '"Company Name" DEAL|TECHNOLOGY|POLICY'
 arguments: company type
