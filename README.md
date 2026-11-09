@@ -24,7 +24,9 @@ the prior stages' outputs, does its analysis, and writes results to disk.
    - `/political` — political and regulatory risk
 3. `/bull` — steelmans the investment thesis using the advisor outputs
 4. `/bear` — generates rival readings against the Bull case
-5. `/executive` — synthesizes everything into a scorecard and narrative
+5. `/executive` — synthesizes everything into one report,
+   `05_executive_report.md` (grade, scorecard, narrative, crux, catalysts,
+   next actions), and pushes it to the Notion main page
 
 Each step needs the previous ones to have run (advisors need research, Bull
 needs advisors, Bear needs Bull, Executive needs everything). If a required
@@ -59,8 +61,7 @@ analyses/
     02c_political_advisor_full.md / _summary.md
     03_bull_full.md
     04_bear_full.md
-    05_executive_data.json
-    05_executive_narrative.md
+    05_executive_report.md
     .meta
     .notion
 ```
@@ -165,8 +166,9 @@ For each major claim:
 
 ### Render scorecard as a visual artifact (radar chart)
 
-After `/executive` produces `05_executive_data.json`, paste its header fields
-and scores table into a new conversation and run:
+After `/executive` produces `05_executive_report.md`, paste its YAML
+frontmatter (grade, confidences, status, risk) and its `## Scorecard` table
+into a new conversation and run:
 
 ```
 Render the following executive summary scorecard as an interactive HTML artifact.

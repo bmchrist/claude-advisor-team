@@ -88,11 +88,14 @@ or mark `skipped — no local file` if it does not.
 
 ### Step 3 — Executive sync
 
-If `executive` is on the work list and both
-`analyses/{slug}/05_executive_data.json` and
-`analyses/{slug}/05_executive_narrative.md` exist, follow REFERENCE.md's
-"Executive update-in-place" procedure, reading all inputs from those two
-files. If either file is missing, mark `skipped — no local file`.
+If `executive` is on the work list and
+`analyses/{slug}/05_executive_report.md` exists, follow REFERENCE.md's
+"Main-page push" procedure. It reads all inputs from that file: properties
+from its frontmatter (`Analysis Date` = its `analysis_date`, not today),
+content from `python3 scripts/notion_body.py {slug} executive`. If the
+report is missing, mark `skipped — no local file (run
+scripts/migrate_exec_report.py)`. Run Step 3 after Step 2, so any sub-page
+created in Step 2 is already in `.notion` and gets linked.
 
 ## Output
 

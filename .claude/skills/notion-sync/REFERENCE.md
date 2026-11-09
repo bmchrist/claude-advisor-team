@@ -20,13 +20,13 @@ stages:
   it (or /notion-sync to bootstrap and catch up in one go)."
 - **A Notion call fails**: state it plainly in your summary: "Notion sync
   failed: <error> — run /notion-sync to retry." Never fail silently and
-  never block on this — the markdown/JSON outputs remain the source of
+  never block on this — the local markdown outputs remain the source of
   truth.
 
 ## Preconditions (check before any procedure below)
 
 Run these gates, in order, before "Bootstrap main page", "Stage sub-page
-push", or "Executive update-in-place". If a gate trips, do **not** call any
+push", or "Main-page push". If a gate trips, do **not** call any
 Notion tool — emit the matching line from "Skip / failure wording" above and
 end the sync section:
 
@@ -48,9 +48,12 @@ end the sync section:
 | 2c | `02c_political_advisor_full.md` | `[ANALYSIS_START]` / `[ANALYSIS_END]` | Stage 2c: Political & Regulatory Risk Analysis | `stage2c_page_id` |
 | 3 | `03_bull_full.md` | `[BULL_START]` / `[BULL_END]` | Stage 3: Bull Case | `stage3_page_id` |
 | 4 | `04_bear_full.md` | `[BEAR_START]` / `[BEAR_END]` | Stage 4: Bear Case | `stage4_page_id` |
+| 5 | `05_executive_report.md` | `[REPORT_START]` / `[REPORT_END]` | (main page) | `main_page_id` |
 
-Stage 5 (Executive) has no sub-page — it updates the main page in place; see
-"Executive update-in-place" below.
+Stage 5 (Executive) has no sub-page. Its report body *is* the main page's
+content above `## Stage Reports`; see "Main-page push" below.
+`scripts/notion_body.py` parses this table for file names, delimiters,
+sub-page titles and `.notion` keys, so keep its column layout intact.
 
 ## Procedure: Bootstrap main page (research / notion-sync only)
 
@@ -77,93 +80,91 @@ Run this only when `analyses/{slug}/.notion` is missing `main_page_id`.
 2. Write the returned page id and url to `analyses/{slug}/.notion` as
    `main_page_id="..."` / `main_page_url="..."` (creating the file if
    needed), before doing anything else. Everything before `## Stage
-   Reports` is a placeholder that `/executive`'s "Executive
-   update-in-place" procedure replaces wholesale later.
+   Reports` is a placeholder that "Main-page push" replaces wholesale
+   later.
+
+## Escaping for Notion
+
+Notion-flavored markdown renders `$…$` as inline math and `<tag>` as
+markup. Local files stay plain markdown (`$` is written as `$`); escaping
+happens **only at push time, only in `scripts/notion_body.py`**:
+
+- every `$` not already escaped → `\$`
+- `<` immediately followed by a letter or `/` → `\<`
+- code spans and fenced code blocks are left untouched
+
+Never hand-escape a body, and never paste a `_full.md` or report file into
+a Notion call directly. Always push the script's output. (Notion's fetch
+output shows its own escapes, like `\$`, `\~`, `\_` and `\[`. That is
+display encoding, not something to copy into pushes.)
 
 ## Procedure: Stage sub-page push
 
 For the stage identified by your skill's row in the stage-facts table:
 
-1. Read the stage's `_full.md` file, strip the H1 title line and the row's
-   delimiter lines — the page title comes from `properties.title`, and the
-   delimiters are fork-handoff markers, not content. Markdown tables in the
-   body are fine; `notion-create-pages` renders them.
+1. Run `python3 scripts/notion_body.py {slug} {stage}` (stage = `1`, `2a`,
+   `2b`, `2c`, `3` or `4`). It prints the push payload: the H1 title line
+   and the row's delimiter lines stripped, the escape rule applied. Use
+   its stdout **verbatim** as the content below. If it prints a line
+   starting `ERROR:`, report it with the failure wording and stop.
 2. If `.notion` already has the row's `.notion` key (re-run), call
    `notion-update-page` with `page_id` = that id, `command: replace_content`,
-   `new_str` = the stripped content. These sub-pages have no children, so
-   this is always safe.
+   `new_str` = the payload. These sub-pages have no children, so this is
+   always safe.
 3. Otherwise, call `notion-create-pages` with `parent: {"type": "page_id",
    "page_id": main_page_id}`, `properties.title` = the row's sub-page title,
-   `content` = the stripped content. Write the returned page id to `.notion`
-   under the row's key.
+   `content` = the payload. Write the returned page id to `.notion` under
+   the row's key.
 
-## Procedure: Executive update-in-place
+## Procedure: Main-page push
 
-Executive (and `/notion-sync` when `05_executive_data.json` /
-`05_executive_narrative.md` exist) updates the main page rather than
-creating a sub-page.
+Executive (and `/notion-sync` when `05_executive_report.md` exists) updates
+the main page from `analyses/{slug}/05_executive_report.md`. The report's
+layout is defined once, in `.claude/skills/executive/SKILL.md`'s Output
+instructions. This procedure copies it and never rebuilds it.
 
-1. `notion-update-page` `command: update_properties` on `main_page_id`, setting
-   **all seven** of these properties in a single call — do not omit any:
-   - `Grade` = `grade` from JSON (Merit letter, e.g. `C+`)
-   - `Grade driver` = `grade_driver` from JSON (one sentence)
-   - `Technical Confidence` = `technical_confidence` from JSON (e.g. `C2`)
-   - `Commercial Confidence` = `commercial_confidence` from JSON (e.g. `C1`)
-   - `Status` = `status` from JSON (`INVEST`/`TRACK`/`INVESTIGATE`/`PASS`)
-   - `date:Analysis Date:start` = today's date (YYYY-MM-DD)
-   - `date:Analysis Date:is_datetime` = `0`
+1. **Properties.** Run
+   `python3 scripts/notion_body.py {slug} executive --properties`. It
+   prints a JSON object built from the report's frontmatter with all seven
+   properties: `Grade`, `Grade driver` (escaped), `Technical Confidence`,
+   `Commercial Confidence`, `Status`, `date:Analysis Date:start` =
+   `analysis_date` (**not today**: re-syncing an old analysis must not
+   make it look new), and `date:Analysis Date:is_datetime` = `0` (the
+   number, not a boolean). Call `notion-update-page`
+   `command: update_properties` on `main_page_id` with that object as
+   `properties`, unchanged, in a single call.
 
-   All seven properties exist in the database schema. If the API rejects a
-   property, note it explicitly and retry the call without that property —
-   do not silently drop properties pre-emptively.
-2. `notion-fetch` the main page. Take everything from the start of its
-   content up to (not including) `## Stage Reports` as `old_str`. Build
-   `new_str`:
-   ```
-   > **Grade {grade_display} · {status}**
-   > {grade_driver}
-   > _Confidence: Tech {technical_confidence} · Comm {commercial_confidence} — {confidence_driver}_
-   > _Status rule: {status_reason}_
+   A frontmatter value of `n/a` (older analyses migrated by
+   `scripts/migrate_exec_report.py`) means "not assessed". The script
+   leaves those properties out and names them in an `OMITTED:` line. Note
+   them in the summary. If the API rejects a property, note it explicitly
+   and retry without it.
+2. **Content.** Run `python3 scripts/notion_body.py {slug} executive`. Its
+   output is the report body (frontmatter, H1 and markers stripped,
+   escaped). It already ends with `## Stage Reports` and one `<page url>`
+   block per `stage*_page_id` in `.notion`, generated from state. Call
+   `notion-update-page` with `page_id` = `main_page_id`,
+   `command: replace_content`, `new_str` = that output **verbatim**. Don't
+   edit it, add links from memory, or set `allow_deleting_content`. If
+   Notion refuses because child pages would be deleted, report the listed
+   pages with the failure wording and stop. That means `.notion` is out of
+   step with Notion. Don't retry.
 
-   ## Executive Narrative
-   {four narrative paragraphs, separated by blank lines}
-
-   ## Scorecard
-   {markdown table: Dimension | Bear | Central | Bull | Confidence | Driver —
-   one row per scored dimension; Confidence (C1-C5) shown for load-bearing rows,
-   blank for the rest}
-
-   ## The Crux
-   {crux}
-
-   ## Catalysts & Triggers
-   {markdown table: Event | Expected window | Scorecard rows moved | Flips to | Source stage — one row per `catalysts` entry}
-
-   ## Sourcing Strength
-   {sourcing_strength rollup line, or its 2-3 row table}
-
-   ## Deal Terms & Price Sensitivity
-   {deal_terms paragraph — DEAL analyses only; omit this heading entirely for non-DEAL}
-
-   ## Values & Judgment Flags
-   {one bullet per values_flags checklist item — subsidy dependence, dual-use/weapons adjacency, safety/environmental-justice exposure, governance, plus any extra flags — each stated flag-or-clear}
-
-   ## What Would Change This
-   {evidence-to-change items, bulleted}
-
-   ## Next Actions
-   {next-action items, bulleted}
-   ```
-   Call `notion-update-page` with `page_id` = `main_page_id`,
-   `command: update_content`, one `content_updates` entry with this
-   `old_str`/`new_str` pair. Leave `## Stage Reports` and everything after
-   it untouched — that section lists the stage sub-pages as child pages,
-   and `replace_content` there would delete them.
+   (Why `replace_content` and not `update_content`: `update_content` needs
+   an exact `old_str` match against fetched text, and fetch output carries
+   its own escapes, so the match is unreliable. `replace_content` is only
+   dangerous when a child `<page>` tag is omitted, and generating the tags
+   from `.notion` removes that risk.)
+3. **Check the sub-pages.** `notion-fetch` the main page once and confirm
+   every `stage*_page_id` in `.notion` appears (dashes removed) in a
+   `<page url>` under `## Stage Reports`. If one is missing, report it: the
+   page is recoverable from Notion's trash, and `/notion-sync` can re-push
+   it. This check is the exception to "skip post-push verification reads"
+   below, because this is the one page with children.
 
 ## Summary line
 
-On any successful sync (bootstrap, sub-page push, or executive
-update-in-place), end your stage's summary with a line:
+On any successful sync (bootstrap, sub-page push, or main-page push), end your stage's summary with a line:
 `Notion: {main_page_url}` — so Ben always has a direct link to the
 analysis, not just a "synced" confirmation. Omit this line if sync was
 skipped or failed (use the skip/failure wording above instead).

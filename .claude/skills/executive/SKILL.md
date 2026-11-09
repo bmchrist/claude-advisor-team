@@ -1,6 +1,6 @@
 ---
 name: Executive
-description: Run the Executive synthesis stage. Produces scorecard data and narrative, and syncs them to Notion.
+description: Run the Executive synthesis stage. Writes 05_executive_report.md (frontmatter + the full main-page report) and pushes it to the Notion main page.
 disable-model-invocation: true
 context: fork
 model: opus
@@ -288,77 +288,106 @@ greenwashing signals, currency-repatriation risk, etc.) as an extra line.
 
 ## Output instructions
 
-Read company, slug, type, and date from the current analysis and date sections above.
-Write two files:
+Read company, slug, type, and date from the Setup and "Today's date" sections
+above. Write **one** file: `analyses/{slug}/05_executive_report.md`.
 
+This template is the **single definition** of the analysis's main-page
+layout. The Notion main page is a copy of the body between the markers, and
+`scripts/migrate_exec_report.py` renders older analyses into the same
+layout, so keep the two in step if you change it. Write plain markdown:
+`$` as `$`, with no Notion escaping. Escaping happens at push time in
+`scripts/notion_body.py`.
+
+Frontmatter rules: `analysis_date` is today's date from "Today's date".
+Quote `company` and `grade_driver` as JSON-style double-quoted strings
+(escape any `"` inside as `\"`). `risk_secondary_types` is a flow list,
+`[]` if none. Every other value is a bare token from the enums above.
+
+```markdown
 ---
+company: "<company name>"
+slug: <slug>
+type: <DEAL|TECHNOLOGY|POLICY>
+analysis_date: <YYYY-MM-DD>
+grade: <Merit letter — STEP 2>
+technical_confidence: <C1-C5 — STEP 1B>
+commercial_confidence: <C1-C5 — STEP 1B>
+status: <INVEST|TRACK|INVESTIGATE|PASS — STEP 2>
+grade_driver: "<one sentence — STEP 2>"
+risk_level: <CONTAINED|MODERATE|SEVERE|BINARY — STEP 2B>
+risk_primary_type: <TECHNOLOGY_SCALE_UP|COMMERCIAL_UNIT_ECONOMICS|POLICY_SUBSIDY_CLIFF|COUNTERPARTY_OFFTAKE|CAPITAL_STRUCTURE_FINANCING|EXECUTION — STEP 2B>
+risk_secondary_types: [<type>, <type>]
+---
+# <company> — Executive Report (<type>)
 
-**File 1:** `analyses/{slug}/05_executive_data.json`
+[REPORT_START]
+> **Grade <grade> / Tech <technical_confidence> · Comm <commercial_confidence> · <status>**
+> <grade_driver>
+> _Confidence: Tech <tc> · Comm <cc> — <confidence_driver: which axis binds (the lower) and the fact it hinges on — STEP 1B>_
+> _Status rule: <status_reason: the decision rule behind the status, always populated, distinct from grade_driver — STEP 2>_
 
-Valid JSON, no trailing commas, no comments:
-```json
-{
-  "subject": "<company name>",
-  "date": "<YYYY-MM-DD>",
-  "analysis_type": "<type>",
-  "grade": "<Merit letter>",
-  "technical_confidence": "<C1-C5 — is the tech proven; STEP 1B>",
-  "commercial_confidence": "<C1-C5 — is the business proven; STEP 1B>",
-  "confidence_driver": "<one sentence — which axis binds (the lower) and the fact it hinges on>",
-  "grade_display": "<paired form, e.g. 'B- / Tech C4 · Comm C2'>",
-  "status": "<INVEST|TRACK|INVESTIGATE|PASS>",
-  "grade_driver": "<one sentence — what drives the Merit letter>",
-  "status_reason": "<one sentence — the decision rule behind the status; always populated, distinct from grade_driver>",
-  "risk_level": "<CONTAINED|MODERATE|SEVERE|BINARY>",
-  "risk_primary_type": "<TECHNOLOGY_SCALE_UP|COMMERCIAL_UNIT_ECONOMICS|POLICY_SUBSIDY_CLIFF|COUNTERPARTY_OFFTAKE|CAPITAL_STRUCTURE_FINANCING|EXECUTION>",
-  "risk_secondary_types": ["<type>"],
-  "risk_characterization": "<one sentence: level + primary type + why, tied to the crux>",
-  "scores": {
-    "<Dimension>": {"bear": N, "central": N, "bull": N, "driver": "<10 words max>", "confidence": "<C1-C5; load-bearing dimensions only, omit key for others>"}
-  },
-  "crux": "<2-3 sentences; name the selection rule that chose this crux>",
-  "evidence_to_change": ["<item 1>", "<item 2>"],
-  "catalysts": [
-    {"event": "<event>", "window": "<expected date/window>", "scorecard_rows": ["<dimension>"], "target_grade_status": "<grade/status it would flip to>", "source_stage": "<stage>"}
-  ],
-  "sourcing_strength": "<rollup of evidence-tag tiers for the load-bearing facts>",
-  "deal_terms": "<DEAL only: deal-terms & price-sensitivity sentence, or the no-materials disclaimer; empty string for non-DEAL>",
-  "values_flags": {
-    "subsidy_dependence": "<flag-or-clear, one line>",
-    "dual_use_weapons_adjacency": "<flag-or-clear, one line>",
-    "safety_environmental_justice": "<flag-or-clear, one line>",
-    "governance": "<flag-or-clear, one line>"
-  },
-  "next_actions": ["<action 1>", "<action 2>"]
-}
+> **Risk: <risk_level> / <risk_primary_type>** (secondary: <types, comma-separated; omit the parenthetical if none>). <risk_characterization: the STEP 2B closing sentence's "why", tied to the crux, without its leading "LEVEL / TYPE:" label, which the bold text already shows>
+
+## Executive Narrative
+
+<STEP 3: exactly four paragraphs separated by blank lines, with no "Para N:" labels>
+
+## Scorecard
+
+| Dimension | Bear | Central | Bull | Confidence | Driver |
+| --- | --- | --- | --- | --- | --- |
+| <dimension> | <1-5> | <1-5> | <1-5> | <C1-C5 for load-bearing rows; blank otherwise> | <driver, 10 words max> |
+
+<STEP 1/1B: one row per scored dimension>
+
+## The Crux
+
+<STEP 4: 2-3 sentences, naming the selection rule>
+
+## Catalysts & Triggers
+
+| Event | Expected window | Scorecard rows moved | Flips to | Source stage |
+| --- | --- | --- | --- | --- |
+| <event> | <window> | <dimension, dimension> | <grade/status it would flip to> | <stage> |
+
+<STEP 6: one row per catalyst>
+
+## Sourcing Strength
+
+<STEP 7: the rollup line, or its 2-3 row table>
+
+## Deal Terms & Price Sensitivity
+
+<STEP 8, DEAL only: the paragraph or the verbatim no-materials line. For non-DEAL analyses omit this heading entirely>
+
+## Values & Judgment Flags
+
+- **Subsidy dependence:** <flag-or-clear, one line>
+- **Dual-use / weapons adjacency:** <flag-or-clear, one line>
+- **Safety / environmental justice:** <flag-or-clear, one line>
+- **Governance:** <flag-or-clear, one line>
+- **<Any further flag>:** <one line>
+
+## What Would Change This
+
+- <STEP 5 item, one bullet each>
+
+## Next Actions
+
+- <STEP 10 action, one bullet each>
+[REPORT_END]
 ```
 
----
-
-**File 2:** `analyses/{slug}/05_executive_narrative.md`
-
-[NARRATIVE_START]
-Para 1: <what this is and why it's on the radar>
-
-Para 2: <the bull case in specific terms>
-
-Para 3: <the bear case in specific terms>
-
-Para 4: <what needs to be true for the bull case to play out>
-[NARRATIVE_END]
+Don't write `## Stage Reports` into the file. The push generates it from
+`.notion`. Pipe characters inside table cells must be escaped as `\|`.
 
 ## Notion sync
 
-See `.claude/skills/notion-sync/REFERENCE.md` for full conventions
-(skip/failure wording, performance notes).
-
-Follow REFERENCE.md's "Executive update-in-place" procedure: `Grade`,
-`Grade driver`, `Technical Confidence`, `Commercial Confidence`, and `Status`
-come from STEP 2 (with `status_reason` the status decision-rule); the Risk Level / Type / characterization from STEP 2B (surface as a callout directly under Grade/Status); the narrative paragraphs from STEP 3; the scorecard
-from STEP 1; the crux from STEP 4; "Catalysts & Triggers" from STEP 6;
-"Sourcing Strength" from STEP 7; "Deal Terms & Price Sensitivity" (DEAL only)
-from STEP 8; "Values & Judgment Flags" from STEP 9; "What Would Change This"
-from STEP 5; "Next Actions" from STEP 10.
+Follow `.claude/skills/notion-sync/REFERENCE.md`: run its Preconditions,
+then its "Main-page push" procedure using `05_executive_report.md`
+(properties from the frontmatter, content from
+`python3 scripts/notion_body.py {slug} executive`, then the sub-page check).
+Skip/failure wording is also in REFERENCE.md.
 
 End your summary with `Notion: {main_page_url}` on success, or the
 appropriate skip/failure line from REFERENCE.md.

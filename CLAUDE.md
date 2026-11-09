@@ -23,12 +23,17 @@ changes, see `projectplan.md`.
 | `/political` | research full | `02c_political_advisor_full.md`, `02c_political_advisor_summary.md` |
 | `/bull` | rc summary + advisor fulls | `03_bull_full.md` |
 | `/bear` | rc summary + advisor fulls + bull | `04_bear_full.md` |
-| `/executive` | rc summary + advisor summaries + bull + bear | `05_executive_data.json`, `05_executive_narrative.md` |
+| `/executive` | rc summary + advisor summaries + bull + bear | `05_executive_report.md` |
 
-All outputs are markdown (plus one JSON file from Executive). Each stage
-(except `/ingest-materials`) also mirrors its output to Notion as it
-finishes — see "Notion sync" below. Notion is the primary way to browse a
-finished analysis; local `.md`/`.json` files remain the source of truth.
+All outputs are markdown. Each stage (except `/ingest-materials`) also
+mirrors its output to Notion as it finishes — see "Notion sync" below. Notion is the primary way to browse a
+finished analysis; local `.md` files remain the source of truth.
+`05_executive_report.md` holds exactly what the Notion main page shows
+(YAML frontmatter for the Notion properties, then the report body); its
+layout is defined once, in `executive/SKILL.md`'s Output instructions.
+Analyses from before 2026-11-09 also still have the legacy
+`05_executive_data.json` / `05_executive_narrative.md`. These are unused,
+and `scripts/migrate_exec_report.py` rendered a report from them.
 
 ## Context window discipline
 
@@ -88,8 +93,7 @@ analyses/
     02c_political_advisor_summary.md
     03_bull_full.md
     04_bear_full.md
-    05_executive_data.json
-    05_executive_narrative.md
+    05_executive_report.md
     .meta
     .notion
 ```
@@ -128,13 +132,13 @@ output to Notion as it finishes, so an analysis can be browsed without
 opening local files — Notion is the primary way the user reads finished
 analyses. This is best-effort and never blocks: if the Notion MCP tools
 aren't available, or any call fails, the skill says so explicitly in its
-summary and continues — the markdown/JSON outputs remain the source of
+summary and continues — the local markdown outputs remain the source of
 truth, and `/notion-sync` can push the missing piece later without
 re-running the analysis.
 
-Canonical sync procedures (bootstrap, stage sub-page push, Executive
-update-in-place, skip/failure wording, the stage-facts table, and
-performance notes) live in `.claude/skills/notion-sync/REFERENCE.md` — every
+Canonical sync procedures (bootstrap, stage sub-page push, main-page
+push, the Notion escaping rule, skip/failure wording, the stage-facts
+table, and performance notes) live in `.claude/skills/notion-sync/REFERENCE.md` — every
 skill's `## Notion sync` section points there instead of repeating this
 content.
 
