@@ -1,7 +1,7 @@
 ---
 name: Science Advisor
-description: Run the Science Advisor stage for the current analysis.
-disable-model-invocation: true
+description: Run the Science Advisor stage for the current analysis. Only invoke when Ben runs it directly or when /run-analysis or /rerun-analysis directs it — never on your own initiative.
+disable-model-invocation: false
 context: fork
 model: sonnet
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page

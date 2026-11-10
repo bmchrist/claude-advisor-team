@@ -1,7 +1,7 @@
 ---
 name: Ingest Materials
-description: Process raw deal materials (pitch decks, financial models, legal docs, images) into a digest, manifest, and exhibit images for an analysis. Run before /research.
-disable-model-invocation: true
+description: Process raw deal materials (pitch decks, financial models, legal docs, images) into a digest, manifest, and exhibit images for an analysis. Run before /research. Only invoke when Ben runs it directly or when /run-analysis or /rerun-analysis directs it — never on your own initiative.
+disable-model-invocation: false
 context: fork
 model: opus
 allowed-tools: Read Write Bash

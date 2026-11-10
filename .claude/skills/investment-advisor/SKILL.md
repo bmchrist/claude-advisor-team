@@ -1,7 +1,7 @@
 ---
 name: Investment Advisor
-description: Run the Investment Advisor stage for the current analysis.
-disable-model-invocation: true
+description: Run the Investment Advisor stage for the current analysis. Only invoke when Ben runs it directly or when /run-analysis or /rerun-analysis directs it — never on your own initiative.
+disable-model-invocation: false
 context: fork
 model: opus
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page

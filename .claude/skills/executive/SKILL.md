@@ -1,7 +1,7 @@
 ---
 name: Executive
-description: Run the Executive synthesis stage. Writes 05_executive_report.md (frontmatter + the full main-page report) and pushes it to the Notion main page.
-disable-model-invocation: true
+description: Run the Executive synthesis stage. Writes 05_executive_report.md (frontmatter + the full main-page report) and pushes it to the Notion main page. Only invoke when Ben runs it directly or when /run-analysis or /rerun-analysis directs it — never on your own initiative.
+disable-model-invocation: false
 context: fork
 model: opus
 allowed-tools: Read Write Bash mcp__notion__notion-update-page mcp__notion__notion-fetch

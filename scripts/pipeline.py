@@ -36,6 +36,14 @@ Subcommands:
   status <slug>
       One-screen table for humans and for resume. Works on analyses with no
       .run.json (derived from files alone).
+  reconcile <slug>
+      For resume: any stage still marked `running` (its session died) is
+      re-checked and set to `complete` if its outputs are complete and newer
+      than its start, else `failed` (which leaves its retry, if any).
+  root
+      Print the repo root (`root: <path>`), so callers can confirm the
+      working directory before invoking stage skills, whose Setup blocks use
+      repo-relative paths.
   prior-run <slug>
       For /research's Setup. Prints the base snapshot's RC path and the
       NEW/CHANGED materials list when .run.json marks a re-run in progress,
@@ -62,6 +70,13 @@ VALID_TYPES = {"DEAL", "TECHNOLOGY", "POLICY"}
 GRADES = {"A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F"}  # Notion select options
 STATUSES = {"INVEST", "TRACK", "INVESTIGATE", "PASS"}
 MAX_ATTEMPTS = 2
+# Notion catch-up is best-effort: one attempt, and its failure ends the run
+# with a warning instead of stopping it.
+STAGE_MAX_ATTEMPTS = {"notion-catchup": 1}
+
+
+def max_attempts(stage):
+    return STAGE_MAX_ATTEMPTS.get(stage, MAX_ATTEMPTS)
 
 # stage -> (deps, [(relative file, start marker, end marker)], .notion keys)
 STAGES = {
@@ -291,8 +306,7 @@ def preflight(company, type_, source=None, quiet=False):
     company = (company or "").strip()
     if not company:
         fail("company name is empty")
-    expanded = os.path.expanduser(company)
-    if "/" in company or company.startswith("~") or os.path.exists(expanded):
+    if "/" in company or company.startswith("~"):
         fail(f"'{company}' looks like a path, not a company name. Usage: "
              f"/run-analysis \"Company\" TYPE [materials-path]")
     t = (type_ or "").strip().strip("'\"").upper()
@@ -373,18 +387,24 @@ def cmd_next(slug):
         info = st[s]
         if info["status"] == "running":
             running.append(s)
-        elif info["status"] == "failed" and info["attempts"] >= MAX_ATTEMPTS:
+        elif info["status"] == "failed" and info["attempts"] >= max_attempts(s):
             blocked.append(s)
         elif info["status"] in ("pending", "failed") and deps_done(run, s):
             ready.append(s)
     if all(i["status"] == "complete" for i in st.values()):
-        out(ready="none", done="true")
+        out(ready="none", done="true", notion="synced")
+        return
+    if blocked == ["notion-catchup"] and all(
+            i["status"] == "complete" for k, i in st.items() if k != "notion-catchup"):
+        out(ready="none", done="true", notion="incomplete")
+        print("WARNING: analysis complete, but Notion catch-up failed. Run /notion-sync "
+              f"{slug} to retry; the local files are the source of truth")
         return
     if blocked:
         # a second failure stops the pipeline: launch nothing new, so nothing
         # downstream runs with a gap
         out(ready="none", running=" ".join(running) or "none", blocked=" ".join(blocked))
-        print(f"ERROR: stage {blocked[0]} failed {MAX_ATTEMPTS} times; pipeline stopped. "
+        print(f"ERROR: stage {blocked[0]} failed {max_attempts(blocked[0])} time(s); pipeline stopped. "
               f"Fix the cause, then /run-analysis resume {slug}")
         return
     out(ready=" ".join(f"{s}({SKILL[s]})" for s in ready) or "none",
@@ -400,8 +420,8 @@ def cmd_start(slug, stage):
         fail(f"stage {stage} is already running — never launch a stage twice")
     if info["status"] == "complete":
         fail(f"stage {stage} is already complete")
-    if info["attempts"] >= MAX_ATTEMPTS:
-        fail(f"stage {stage} has used its {MAX_ATTEMPTS} attempts")
+    if info["attempts"] >= max_attempts(stage):
+        fail(f"stage {stage} has used its {max_attempts(stage)} attempt(s)")
     if not deps_done(run, stage):
         fail(f"stage {stage} has incomplete dependencies")
     info.update(status="running", attempts=info["attempts"] + 1,
@@ -430,9 +450,25 @@ def cmd_finish(slug, stage, result):
     info.update(status="complete" if result == "ok" else "failed",
                 finished=now_iso(), finished_epoch=time.time())
     save_run(slug, run)
-    left = MAX_ATTEMPTS - info["attempts"]
+    left = max_attempts(stage) - info["attempts"]
     out(stage=stage, status=info["status"], notion=nstate,
         retries_left=left if info["status"] == "failed" else "n/a")
+
+
+def cmd_reconcile(slug):
+    run = load_run(slug)
+    changed = []
+    for s, info in run["stages"].items():
+        if info["status"] != "running":
+            continue
+        state, issues, _ = check_stage(slug, s, run)
+        info.update(status="complete" if state == "complete" else "failed",
+                    finished=now_iso(), finished_epoch=time.time())
+        changed.append(f"{s}={info['status']}")
+        for i in issues:
+            print(f"detail: {s}: {i}")
+    save_run(slug, run)
+    out(reconciled=" ".join(changed) or "none")
 
 
 def cmd_check(slug, stage):
@@ -488,7 +524,7 @@ def cmd_prior_run(slug):
 def main():
     a = sys.argv[1:]
     if not a:
-        fail("usage: pipeline.py preflight|init|next|start|finish|check|status|prior-run ...")
+        fail("usage: pipeline.py preflight|init|next|start|finish|check|reconcile|status|root|prior-run ...")
     cmd, rest = a[0], a[1:]
     if cmd == "preflight" and len(rest) in (2, 3):
         preflight(*rest)
@@ -504,6 +540,10 @@ def main():
         cmd_check(slug_arg(rest[0]), stage_arg(rest[1]))
     elif cmd == "status" and len(rest) == 1:
         cmd_status(slug_arg(rest[0]))
+    elif cmd == "reconcile" and len(rest) == 1:
+        cmd_reconcile(slug_arg(rest[0]))
+    elif cmd == "root" and not rest:
+        out(root=ROOT)
     elif cmd == "prior-run" and len(rest) == 1:
         cmd_prior_run(slug_arg(rest[0]))
     else:

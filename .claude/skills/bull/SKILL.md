@@ -1,7 +1,7 @@
 ---
 name: Bull
-description: Run the Bull stage for the current analysis. Steelmans the investment thesis using advisor outputs.
-disable-model-invocation: true
+description: Run the Bull stage for the current analysis. Steelmans the investment thesis using advisor outputs. Only invoke when Ben runs it directly or when /run-analysis or /rerun-analysis directs it — never on your own initiative.
+disable-model-invocation: false
 context: fork
 model: sonnet
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page

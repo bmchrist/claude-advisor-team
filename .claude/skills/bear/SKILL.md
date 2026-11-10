@@ -1,7 +1,7 @@
 ---
 name: Bear
-description: Run the Bear stage for the current analysis. Generates rival readings against the Bull thesis.
-disable-model-invocation: true
+description: Run the Bear stage for the current analysis. Generates rival readings against the Bull thesis. Only invoke when Ben runs it directly or when /run-analysis or /rerun-analysis directs it — never on your own initiative.
+disable-model-invocation: false
 context: fork
 model: opus
 allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page

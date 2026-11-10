@@ -24,6 +24,15 @@ changes, see `projectplan.md`.
 | `/bull` | rc summary + advisor fulls | `03_bull_full.md` |
 | `/bear` | rc summary + advisor fulls + bull | `04_bear_full.md` |
 | `/executive` | rc summary + advisor summaries + bull + bear | `05_executive_report.md` |
+| `/run-analysis "Company" TYPE [source]` / `resume <slug>` | — (orchestrator) | `.run.json`; invokes every stage above in order |
+
+`/run-analysis` is the only skill that doesn't fork. It runs in the main
+session and launches each stage skill with the Skill tool, passing the slug
+explicitly, and does all bookkeeping through `scripts/pipeline.py`. For
+that reason the stage skills have `disable-model-invocation: false`, with a
+description line restricting them to direct runs by Ben or an
+orchestrator's direction. Don't set it back to `true`: that blocks the
+Skill tool outright, including from `/run-analysis`.
 
 All outputs are markdown. Each stage (except `/ingest-materials`) also
 mirrors its output to Notion as it finishes — see "Notion sync" below. Notion is the primary way to browse a
@@ -214,6 +223,8 @@ Examples: `Acme+` → `acme_plus`, `AT&T` → `at_and_t`, `Bright Energy` →
 
 - `claude-sonnet-5`: Science Advisor, Political Advisor, Bull, Notion Sync
 - `claude-opus-5`: Research, Investment Advisor, Bear, Executive, Ingest Materials
+- Run Analysis: no `model` pin. It runs in the main session on whatever model
+  the session uses, and only does bookkeeping.
 
 Investment Advisor is intentionally pinned to opus rather than sonnet, unlike
 the other two advisors — deal-terms and capital-structure judgment benefits

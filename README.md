@@ -14,6 +14,36 @@ the prior stages' outputs, does its analysis, and writes results to disk.
 
 ## Running an analysis
 
+### One command (recommended)
+
+```
+/run-analysis "Company Name" TYPE [materials-path]
+```
+
+This runs the whole pipeline: `/ingest-materials` (only if you give a
+materials path), `/research`, the three advisors in parallel, `/bull`,
+`/bear`, `/executive`, then a Notion catch-up for any page that didn't
+sync. It prints one line per finished stage and ends with the verdict and
+the Notion link. A full run takes about 45 minutes. Start Claude Code
+from the repo root.
+
+- **Retries:** each stage gets one automatic retry. A stage that errored
+  but still wrote complete outputs counts as done. A second failure stops
+  the run rather than continuing with a gap.
+- **Resume:** if the session dies or a stage fails twice, fix the cause
+  and run `/run-analysis resume <slug>`. Progress is tracked in
+  `analyses/<slug>/.run.json`, and `python3 scripts/pipeline.py status
+  <slug>` shows it.
+- **Existing analyses:** `/run-analysis` refuses a company that already
+  has an analysis (re-runs are `/rerun-analysis`, coming soon). It also
+  refuses a path given in place of the company name.
+- **Materials:** they're ingested and used straight away, with no pause to
+  review `manifest.md` routing. If you want to review routing first, run
+  `/ingest-materials` by hand and then use the stage-by-stage commands
+  below.
+
+### Stage by stage
+
 1. `/research "Company Name" TYPE` — starts a new analysis. `TYPE` is one of
    `TECHNOLOGY`, `DEAL`, or `POLICY`. This writes `analyses/<slug>/.meta` and
    sets `analyses/.last_target` to this analysis, so it becomes the default
