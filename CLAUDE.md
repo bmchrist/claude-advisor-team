@@ -41,6 +41,10 @@ and `scripts/migrate_exec_report.py` rendered a report from them.
 - Bull receives: advisor full outputs + RC summary
 - Bear receives: advisor full outputs + Bull full + RC summary
 - Executive receives: advisor summaries (not full) + Bull full + Bear full
+- No stage reads `analyses/{slug}/history/` (previous-run snapshots) except
+  RC, which gets the prior RC full on a re-run, and `/compare-runs`.
+  Judgment stages must reach conclusions blind to the previous run's
+  conclusions; otherwise a run comparison measures anchoring, not evidence.
 
 ## State
 
@@ -76,6 +80,14 @@ and invoked identically from every downstream skill's `## Setup` block
 `company:`/`slug:`/`type:` on success or a line starting `ERROR:` on
 failure, and updates `analyses/.last_target` as a side effect of success.
 Change the resolution algorithm in that one file, not per-skill.
+
+One-shot runs keep their bookkeeping in `analyses/{slug}/.run.json`
+(stage status, attempts, timestamps, materials hashes, pipeline
+fingerprint), managed only by `scripts/pipeline.py`. Its subcommands are
+`preflight`, `init`, `next`, `start`, `finish`, `check`, `status` and
+`prior-run`, and the docstring is the reference. `pipeline.py status <slug>`
+also works on analyses that never had a run file, deriving each stage's
+state from its output files and `.notion`.
 
 ## Output structure
 
@@ -176,6 +188,8 @@ stage2c_page_id="..."
 stage3_page_id="..."
 stage4_page_id="..."
 ```
+All writes to `.notion` go through `scripts/notion_state.py set` (locked,
+atomic), because the three advisors write it concurrently.
 If `main_page_id` is missing, only `/research` (or `/notion-sync`) can
 create it — see REFERENCE.md's "Bootstrap main page" procedure; every other
 stage skips sync until then.

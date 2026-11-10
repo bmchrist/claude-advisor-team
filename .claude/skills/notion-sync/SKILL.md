@@ -104,7 +104,8 @@ Report a table with one row per item attempted (bootstrap/main page, stages
 `skipped — no local file`, `skipped — stage filter active`, or
 `error: <message>`.
 
-Update `analyses/{slug}/.notion` incrementally as each push succeeds, so a
+Update `analyses/{slug}/.notion` incrementally as each push succeeds (always
+via `scripts/notion_state.py set`, per REFERENCE.md's "Writing `.notion`"), so a
 re-run of `/notion-sync` only needs to retry whatever is still
 missing/failed. If any call errors, state it plainly in the table and in a
 one-line summary — don't bury it — but keep going with the remaining rows.

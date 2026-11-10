@@ -7,6 +7,16 @@ which doesn't sync) points here instead of repeating this content. See
 schema; this file covers the *procedures*, canonical wording, and the
 stage-facts table.
 
+## Writing `.notion`
+
+Never edit `analyses/{slug}/.notion` with the Write tool or a shell
+redirect. The three advisors run in parallel and each adds its own key,
+so an unlocked read-modify-write can silently drop another stage's page
+id. Every write goes through
+`python3 scripts/notion_state.py set {slug} <key> <value> [<key> <value> ...]`,
+which takes an `fcntl` lock and replaces the file atomically. Reading the
+file directly is fine.
+
 ## Skip / failure wording (canonical)
 
 Use these exact messages so skip/failure reporting is consistent across
@@ -77,9 +87,9 @@ Run this only when `analyses/{slug}/.notion` is missing `main_page_id`.
      ## Stage Reports
      Full write-ups for each pipeline stage are linked as sub-pages below.
      ```
-2. Write the returned page id and url to `analyses/{slug}/.notion` as
-   `main_page_id="..."` / `main_page_url="..."` (creating the file if
-   needed), before doing anything else. Everything before `## Stage
+2. Record the returned page id and url before doing anything else:
+   `python3 scripts/notion_state.py set {slug} main_page_id <id> main_page_url <url>`
+   (it creates `.notion` if needed). Everything before `## Stage
    Reports` is a placeholder that "Main-page push" replaces wholesale
    later.
 
@@ -113,8 +123,8 @@ For the stage identified by your skill's row in the stage-facts table:
    always safe.
 3. Otherwise, call `notion-create-pages` with `parent: {"type": "page_id",
    "page_id": main_page_id}`, `properties.title` = the row's sub-page title,
-   `content` = the payload. Write the returned page id to `.notion` under
-   the row's key.
+   `content` = the payload. Record the returned page id with
+   `python3 scripts/notion_state.py set {slug} <row's key> <id>`.
 
 ## Procedure: Main-page push
 
