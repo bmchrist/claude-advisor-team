@@ -4,7 +4,7 @@ description: Compare the current run of an analysis against an earlier snapshot 
 disable-model-invocation: false
 context: fork
 model: opus
-allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page
+allowed-tools: Read Write Bash mcp__notion__notion-create-pages mcp__notion__notion-update-page mcp__notion__notion-fetch
 argument-hint: "[company-or-slug] [base-snapshot]"
 arguments: target base
 ---
@@ -148,6 +148,14 @@ REFERENCE.md's stage 6 note describes:
 ```
 python3 scripts/notion_state.py set {slug} <notion_key> <page id> <notion_key minus _id>_title "<notion_title>"
 ```
+
+Then link it from the main page. The main page lists its sub-pages only
+when it's pushed, and Executive has already pushed it in this run, so
+follow REFERENCE.md's "Main-page push" procedure for
+`05_executive_report.md` now (properties, the `replace_content` body from
+`notion_body.py {slug} executive`, which now includes this page, and the
+sub-page check). If it fails, say so and name `/notion-sync {slug}
+executive` as the fix.
 
 End your summary with the headline sentence, then `Notion: {main_page_url}`
 on success, or the matching skip/failure line from REFERENCE.md.

@@ -25,6 +25,7 @@ What it compares (all parsed, nothing judged):
     side has none, which is true of every run before .run.json existed
   - --from: which stages the head run re-ran, when it didn't start at research
 """
+import hashlib
 import json
 import os
 import re
@@ -92,6 +93,25 @@ def crux_row(text, dims):
     crux = section(text, "The Crux")
     hits = [(crux.find(d), d) for d in dims if crux.find(d) >= 0]
     return min(hits)[1] if hits else NA
+
+
+def hash_tree(path):
+    """{relpath: sha256}, skipping dotfiles/dot-dirs (same rule as pipeline.py)."""
+    out = {}
+    if not os.path.isdir(path):
+        return out
+    for dp, dnames, fnames in os.walk(path):
+        dnames[:] = sorted(x for x in dnames if not x.startswith("."))
+        for f in sorted(fnames):
+            if f.startswith("."):
+                continue
+            full = os.path.join(dp, f)
+            h = hashlib.sha256()
+            with open(full, "rb") as fh:
+                for chunk in iter(lambda: fh.read(1 << 20), b""):
+                    h.update(chunk)
+            out[os.path.relpath(full, path)] = h.hexdigest()
+    return out
 
 
 def load_json(p):
@@ -178,7 +198,13 @@ def main():
     # materials
     bmat = snapmeta.get("materials") or {}
     ij = load_json(os.path.join(d, "00_deal_materials", ".ingested.json"))
-    hmat = {k: v["sha256"] for k, v in (ij or {}).get("files", {}).items()}
+    if ij:
+        hmat = {k: v["sha256"] for k, v in ij.get("files", {}).items()}
+    elif os.path.exists(os.path.join(d, "00_deal_materials", "materials_digest.md")):
+        # ingested before .ingested.json existed: raw/ is what was ingested
+        hmat = hash_tree(os.path.join(d, "00_deal_materials", "raw"))
+    else:
+        hmat = {}
     L += ["## Materials between runs", ""]
     if not bmat and not hmat:
         L.append("No deal materials in either run.")
