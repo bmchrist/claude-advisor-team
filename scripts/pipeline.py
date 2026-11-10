@@ -45,9 +45,36 @@ Subcommands:
       working directory before invoking stage skills, whose Setup blocks use
       repo-relative paths.
   prior-run <slug>
-      For /research's Setup. Prints the base snapshot's RC path and the
-      NEW/CHANGED materials list when .run.json marks a re-run in progress,
-      else `prior-run: none`. (Snapshots arrive in Phase 5.)
+      For /research's Setup. When .run.json marks a re-run in progress
+      (`rerun_in_progress` with `prior_run.snapshot` naming a history/ dir),
+      prints the base snapshot's name and analysis date, the absolute path
+      of its RC full output, and the materials NEW/CHANGED since that
+      snapshot. Otherwise prints `prior-run: none`.
+  snapshot <slug> --reason <initial|new-materials|refresh|manual>
+      Archive the current run before anything overwrites it, to
+      analyses/{slug}/history/{YYYY-MM-DD_HHMM}_{reason}/: the 01-05
+      outputs, manifest.md, materials_digest.md, .ingested.json, .meta and
+      .run.json, plus snapshot.json (reason, analysis date, the run's
+      pipeline fingerprint or null, and the sha256 of every materials file
+      that run ingested, from .ingested.json — raw/ and exhibits/ themselves
+      aren't copied). Prints `snapshot: <dir>`, or
+      `snapshot: none` if there are no outputs to archive.
+  materials <slug> [--source <path>] [--copy] [--commit]
+      Classify deal materials as NEW / CHANGED / UNCHANGED / REMOVED against
+      00_deal_materials/.ingested.json (bootstrap: if that file is missing
+      but a digest exists — an analysis ingested before this record
+      existed — everything currently in raw/ counts as already ingested;
+      with no digest either, everything is NEW).
+        --source <path>  compare the source file/folder, before any copy
+        (no --source)    compare raw/ itself
+        --copy           with --source: copy NEW/CHANGED files into raw/,
+                         first moving each CHANGED file's old version to
+                         raw/.superseded/{date}/
+        --commit         record raw/'s current hashes in .ingested.json
+                         (run after a successful ingest)
+      Prints one line per non-UNCHANGED file, a counts line, and
+      `to-process:` (the NEW/CHANGED files, relative to raw/) or
+      `to-process: none`.
 
 Stage graph:
   ingest? -> research -> {science, investment, political} -> bull -> bear
@@ -59,6 +86,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -203,6 +231,189 @@ def fingerprint():
     except (OSError, subprocess.CalledProcessError):
         commit, dirty = None, None
     return {"git_commit": commit, "uncommitted_prompt_edits": dirty, "files": fp}
+
+
+# --- materials & snapshots ------------------------------------------------
+
+def hash_tree(path):
+    """{relpath: sha256} for a file or folder, skipping dotfiles/dot-dirs
+    (so raw/.superseded/ is never counted)."""
+    path = os.path.abspath(os.path.expanduser(path))
+    if os.path.isfile(path):
+        return {os.path.basename(path): sha256_file(path)}
+    hashes = {}
+    for dp, dnames, fnames in os.walk(path):
+        dnames[:] = sorted(d for d in dnames if not d.startswith("."))
+        for f in sorted(fnames):
+            if f.startswith("."):
+                continue
+            full = os.path.join(dp, f)
+            hashes[os.path.relpath(full, path)] = sha256_file(full)
+    return hashes
+
+
+def materials_dir(slug):
+    return os.path.join(adir(slug), "00_deal_materials")
+
+
+def ingested_record(slug):
+    """(hashes, bootstrapped) — hashes from .ingested.json. Analyses
+    ingested before .ingested.json existed have a digest but no record:
+    then raw/'s current contents count as already ingested. With neither,
+    nothing has been ingested yet."""
+    p = os.path.join(materials_dir(slug), ".ingested.json")
+    if os.path.exists(p):
+        with open(p, encoding="utf-8") as f:
+            return {k: v["sha256"] for k, v in json.load(f)["files"].items()}, False
+    raw = os.path.join(materials_dir(slug), "raw")
+    if not os.path.exists(os.path.join(materials_dir(slug), "materials_digest.md")):
+        return {}, False
+    return (hash_tree(raw) if os.path.isdir(raw) else {}), True
+
+
+def classify(current, recorded, full_set=True):
+    res = {"NEW": [], "CHANGED": [], "UNCHANGED": [], "REMOVED": []}
+    for rel, h in sorted(current.items()):
+        if rel not in recorded:
+            res["NEW"].append(rel)
+        elif recorded[rel] != h:
+            res["CHANGED"].append(rel)
+        else:
+            res["UNCHANGED"].append(rel)
+    if full_set:
+        res["REMOVED"] = sorted(set(recorded) - set(current))
+    return res
+
+
+def report_age(slug, base_dir=None):
+    """analysis_date of an executive report (falls back to RC full mtime)."""
+    d = base_dir or adir(slug)
+    rp = os.path.join(d, "05_executive_report.md")
+    if os.path.exists(rp):
+        fm = parse_frontmatter(open(rp, encoding="utf-8").read()) or {}
+        if fm.get("analysis_date") and fm["analysis_date"] != "n/a":
+            return fm["analysis_date"]
+    rc = os.path.join(d, "01_research_collector_full.md")
+    if os.path.exists(rc):
+        return datetime.date.fromtimestamp(os.path.getmtime(rc)).isoformat()
+    return "unknown"
+
+
+def cmd_materials(slug, source=None, copy=False, commit=False):
+    md = materials_dir(slug)
+    raw = os.path.join(md, "raw")
+    if copy and not source:
+        fail("--copy requires --source")
+    recorded, boot = ingested_record(slug)
+    if source:
+        src = os.path.abspath(os.path.expanduser(source))
+        if not os.path.exists(src):
+            fail(f"source path does not exist: {src}")
+        current = hash_tree(src)
+        if not current:
+            fail(f"source has no files: {src}")
+        # a source folder is usually a subset (new docs only), so files
+        # missing from it aren't REMOVED unless we compare raw/ itself
+        res = classify(current, recorded, full_set=False)
+    else:
+        current = hash_tree(raw) if os.path.isdir(raw) else {}
+        res = classify(current, recorded, full_set=not boot)
+    if boot:
+        print("WARNING: no .ingested.json yet; treating everything currently in raw/ as already ingested")
+    for status in ("NEW", "CHANGED", "REMOVED"):
+        for rel in res[status]:
+            print(f"{status}: {rel}")
+    out(materials=" ".join(f"{k.lower()}={len(v)}" for k, v in res.items()))
+    todo = res["NEW"] + res["CHANGED"]
+
+    if copy and todo:
+        stamp = datetime.date.today().isoformat()
+        for rel in todo:
+            dst = os.path.join(raw, rel)
+            if rel in res["CHANGED"] and os.path.exists(dst):
+                sup = os.path.join(raw, ".superseded", stamp, rel)
+                os.makedirs(os.path.dirname(sup), exist_ok=True)
+                if os.path.exists(sup):
+                    sup += f".{int(time.time())}"
+                shutil.move(dst, sup)
+                print(f"superseded: {rel} -> raw/.superseded/{stamp}/{rel}")
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            srcfile = src if os.path.isfile(src) else os.path.join(src, rel)
+            shutil.copy2(srcfile, dst)
+            print(f"copied: {rel}")
+    out(to_process=", ".join(todo) if todo else "none")
+
+    if commit:
+        if not os.path.isdir(raw):
+            fail(f"no raw/ folder at {os.path.relpath(raw, ROOT)}")
+        now = now_iso()
+        prev = {}
+        p = os.path.join(md, ".ingested.json")
+        if os.path.exists(p):
+            prev = json.load(open(p, encoding="utf-8"))["files"]
+        files = {}
+        for rel, h in hash_tree(raw).items():
+            same = prev.get(rel, {}).get("sha256") == h
+            files[rel] = {"sha256": h, "ingested": prev[rel]["ingested"] if same else now}
+        fd, tmp = tempfile.mkstemp(dir=md, prefix=".ingested.")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump({"updated": now, "files": files}, f, indent=2)
+            f.write("\n")
+        os.replace(tmp, p)
+        out(committed=f"{len(files)} file(s) to 00_deal_materials/.ingested.json")
+
+
+SNAPSHOT_REASONS = {"initial", "new-materials", "refresh", "manual"}
+
+
+def cmd_snapshot(slug, reason):
+    if reason not in SNAPSHOT_REASONS:
+        fail(f"reason must be one of: {', '.join(sorted(SNAPSHOT_REASONS))}")
+    d = adir(slug)
+    if not os.path.isdir(d):
+        fail(f"no analysis directory analyses/{slug}")
+    outputs = sorted(f for f in os.listdir(d) if re.match(r"^0[1-5][a-c]?_.*\.(md|json)$", f))
+    if not outputs:
+        out(snapshot="none")
+        return
+    name = f"{datetime.datetime.now().strftime('%Y-%m-%d_%H%M')}_{reason}"
+    dest = os.path.join(d, "history", name)
+    n = 2
+    while os.path.exists(dest):
+        dest = os.path.join(d, "history", f"{name}_{n}")
+        n += 1
+    os.makedirs(dest)
+    copied = []
+    extra = [".meta", ".run.json",
+             os.path.join("00_deal_materials", "manifest.md"),
+             os.path.join("00_deal_materials", "materials_digest.md"),
+             os.path.join("00_deal_materials", ".ingested.json")]
+    for rel in outputs + extra:
+        srcp = os.path.join(d, rel)
+        if os.path.exists(srcp):
+            dstp = os.path.join(dest, rel)
+            os.makedirs(os.path.dirname(dstp), exist_ok=True)
+            shutil.copy2(srcp, dstp)
+            copied.append(rel)
+    run = load_run(slug, required=False)
+    meta = {
+        "created": now_iso(),
+        "reason": reason,
+        "analysis_date": report_age(slug),
+        # the fingerprint of the run that produced these outputs; runs from
+        # before .run.json existed have none, and /compare-runs must report
+        # "unknown (no fingerprint)" rather than "no pipeline change"
+        "fingerprint": (run or {}).get("fingerprint"),
+        # what this run ingested (.ingested.json), not raw/'s current state,
+        # so the record is right even if new files were copied in first
+        "materials": ingested_record(slug)[0],
+        "files": copied,
+    }
+    with open(os.path.join(dest, "snapshot.json"), "w", encoding="utf-8") as f:
+        json.dump(meta, f, indent=2)
+        f.write("\n")
+    out(snapshot=os.path.relpath(dest, ROOT), files=len(copied),
+        fingerprint="recorded" if meta["fingerprint"] else "none (pre-pipeline run)")
 
 
 # --- validation --------------------------------------------------------------
@@ -511,20 +722,30 @@ def cmd_status(slug):
 
 def cmd_prior_run(slug):
     run = load_run(slug, required=False)
-    if not run or not run.get("rerun_in_progress") or not run.get("prior_run"):
+    pr = (run or {}).get("prior_run") or {}
+    snap = pr.get("snapshot")
+    base = os.path.join(adir(slug), "history", snap) if snap else None
+    if not run or not run.get("rerun_in_progress") or not base or not os.path.isdir(base):
         out(prior_run="none")
         return
-    pr = run["prior_run"]
-    out(prior_run="yes", base=pr.get("base", "?"),
-        prior_rc_full=pr.get("rc_full_path", "none"))
-    changed = pr.get("materials_changed") or []
-    out(materials_changed=", ".join(changed) if changed else "none")
+    meta = {}
+    sj = os.path.join(base, "snapshot.json")
+    if os.path.exists(sj):
+        meta = json.load(open(sj, encoding="utf-8"))
+    rc = os.path.join(base, "01_research_collector_full.md")
+    out(prior_run="yes", base=snap, base_date=meta.get("analysis_date") or report_age(slug, base),
+        prior_rc_full=rc if os.path.exists(rc) else "none")
+    raw = os.path.join(materials_dir(slug), "raw")
+    res = classify(hash_tree(raw) if os.path.isdir(raw) else {}, meta.get("materials", {}))
+    changed = [f"NEW {r}" for r in res["NEW"]] + [f"CHANGED {r}" for r in res["CHANGED"]]
+    out(materials_changed="; ".join(changed) if changed else "none")
 
 
 def main():
     a = sys.argv[1:]
     if not a:
-        fail("usage: pipeline.py preflight|init|next|start|finish|check|reconcile|status|root|prior-run ...")
+        fail("usage: pipeline.py preflight|init|next|start|finish|check|reconcile|status|root|"
+             "snapshot|materials|prior-run ...")
     cmd, rest = a[0], a[1:]
     if cmd == "preflight" and len(rest) in (2, 3):
         preflight(*rest)
@@ -542,6 +763,21 @@ def main():
         cmd_status(slug_arg(rest[0]))
     elif cmd == "reconcile" and len(rest) == 1:
         cmd_reconcile(slug_arg(rest[0]))
+    elif cmd == "snapshot" and len(rest) == 3 and rest[1] == "--reason":
+        cmd_snapshot(slug_arg(rest[0]), rest[2])
+    elif cmd == "materials" and rest:
+        slug, flags = slug_arg(rest[0]), rest[1:]
+        source = None
+        if "--source" in flags:
+            i = flags.index("--source")
+            if i + 1 >= len(flags):
+                fail("--source needs a path")
+            source = flags[i + 1]
+            del flags[i:i + 2]
+        unknown = [f for f in flags if f not in ("--copy", "--commit")]
+        if unknown:
+            fail(f"unknown materials flag(s): {' '.join(unknown)}")
+        cmd_materials(slug, source, "--copy" in flags, "--commit" in flags)
     elif cmd == "root" and not rest:
         out(root=ROOT)
     elif cmd == "prior-run" and len(rest) == 1:

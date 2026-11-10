@@ -11,7 +11,10 @@ arguments: company type
 
 ## Setup
 ```!
-python3 scripts/resolve_target.py --new "$company" "$type"
+setup_out=$(python3 scripts/resolve_target.py --new "$company" "$type")
+echo "$setup_out"
+SLUG=$(echo "$setup_out" | grep "^slug:" | sed 's/^slug: *//')
+if [ -n "$SLUG" ]; then python3 scripts/pipeline.py prior-run "$SLUG"; fi
 ```
 
 If Setup printed an ERROR line, stop and report it to Ben verbatim — do not
@@ -45,6 +48,43 @@ risk self-assessment").
 
 If neither file exists, proceed without them; this is normal for most
 analyses.
+
+## Prior run
+
+If Setup printed `prior-run: none` (the normal case), skip this section.
+
+If it printed `prior-run: yes`, this is a re-run of an existing analysis.
+Setup also printed `base-date` (when the previous run was done),
+`prior-rc-full` (the previous Research Collector full output, in the
+analysis's `history/` folder) and `materials-changed` (deal materials that
+are NEW or CHANGED since that run).
+
+1. **Read the prior briefing first.** Read `prior-rc-full` with the Read
+   tool. It's the only file under `history/` you may open. Don't look for
+   earlier advisor, Bull, Bear or Executive outputs, here or anywhere else.
+   Later stages must judge this run without anchoring on the previous
+   verdict.
+2. **New materials first.** If `materials-changed` isn't `none`, the
+   digest already includes those files (its `## Ingestion log` shows which
+   rows are new). Make sure what they say reaches Sections 1–3. That's the
+   main reason for this re-run.
+3. **Carry forward, but re-verify.** You may reuse still-valid findings
+   and sources from the prior briefing instead of re-researching them from
+   scratch. However:
+   - Re-check every headline fact against current sources before carrying
+     it forward: funding, valuation, team, customers and contracts,
+     capacity and TRL claims, and regulatory status. If a fact changed,
+     state the new value and note what it replaced.
+   - Drop anything you can no longer support. Don't silently keep a stale
+     claim.
+4. **Tag what's new.** Tag every finding first found in this run, whether
+   from new materials or new public sources, with
+   `[NEW SINCE {base-date}]` alongside its usual evidence tag, e.g.
+   `[VERIFIED] [NEW SINCE 2026-10-12]`. Carried-forward findings keep only
+   their evidence tag.
+5. **Say what moved.** In the summary file, add one line listing the most
+   material `[NEW SINCE]` findings, or "No material new findings since
+   {base-date}".
 
 ## Your task
 

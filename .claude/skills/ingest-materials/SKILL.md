@@ -16,79 +16,65 @@ echo "$slug_out"
 if echo "$slug_out" | grep -q "^ERROR:"; then
   exit 0
 fi
-export RESOLVED_SLUG=$(echo "$slug_out" | grep "^slug:" | sed 's/^slug: *//')
-
-python3 - << 'EOF'
-import os, shutil
-slug = os.environ['RESOLVED_SLUG']
-source = """$source""".strip().strip('"').strip("'")
-raw_dir = f'analyses/{slug}/00_deal_materials/raw'
-exhibits_dir = f'analyses/{slug}/00_deal_materials/exhibits'
-os.makedirs(raw_dir, exist_ok=True)
-os.makedirs(exhibits_dir, exist_ok=True)
-print(f'raw_dir:     {raw_dir}')
-print(f'exhibits_dir: {exhibits_dir}')
-
-if source:
-    source = os.path.expanduser(source)
-    copied = []
-    if os.path.isdir(source):
-        for dp, dnames, fnames in os.walk(source):
-            dnames[:] = [d for d in dnames if not d.startswith('.')]
-            rel = os.path.relpath(dp, source)
-            for f in fnames:
-                if f.startswith('.'):
-                    continue
-                src_path = os.path.join(dp, f)
-                dst_dir = raw_dir if rel == '.' else os.path.join(raw_dir, rel)
-                os.makedirs(dst_dir, exist_ok=True)
-                dst_path = os.path.join(dst_dir, f)
-                shutil.copy2(src_path, dst_path)
-                copied.append(os.path.relpath(dst_path, raw_dir))
-    elif os.path.isfile(source):
-        dst_path = os.path.join(raw_dir, os.path.basename(source))
-        shutil.copy2(source, dst_path)
-        copied.append(os.path.relpath(dst_path, raw_dir))
-    else:
-        print(f'WARNING: source path not found: {source}')
-    if copied:
-        print(f'copied {len(copied)} file(s) from {source}:')
-        for f in copied:
-            print(f'  - {f}')
-
-files = sorted(
-    os.path.join(dp, f)
-    for dp, _, fnames in os.walk(raw_dir)
-    for f in fnames
-    if not f.startswith('.')
-)
-if files:
-    print('files:')
-    for f in files:
-        print(f'  - {f}')
-else:
-    print('files: none')
-EOF
+SLUG=$(echo "$slug_out" | grep "^slug:" | sed 's/^slug: *//')
+mkdir -p "analyses/$SLUG/00_deal_materials/raw" "analyses/$SLUG/00_deal_materials/exhibits"
+echo "raw_dir:      analyses/$SLUG/00_deal_materials/raw"
+echo "exhibits_dir: analyses/$SLUG/00_deal_materials/exhibits"
+src="$source"; src="${src#\"}"; src="${src%\"}"; src="${src#\'}"; src="${src%\'}"
+if [ -n "$src" ]; then
+  python3 scripts/pipeline.py materials "$SLUG" --source "$src" --copy
+else
+  python3 scripts/pipeline.py materials "$SLUG"
+fi
 ```
 
 If Setup printed an ERROR line, stop and report it to Ben verbatim. If it
 printed a WARNING line, note it in your final summary.
 
-If `files: none`, stop and report:
+Setup classified every materials file against what was ingested before
+(`00_deal_materials/.ingested.json`) **before** copying anything, then
+copied only NEW and CHANGED files into `raw/`. The old version of each
+CHANGED file was moved to `raw/.superseded/{date}/`. It printed one line
+per NEW / CHANGED / REMOVED file and a `to-process:` line.
 
-"No raw materials found. Either re-run `/ingest-materials {target} <path-to-folder-or-file>`
-to copy materials in from elsewhere, or place files directly in
-`analyses/{slug}/00_deal_materials/raw/` (the path printed above) and re-run
-`/ingest-materials {target}`."
+- **`to-process: none`** (every file is UNCHANGED): stop without writing
+  anything and report: "No new or changed materials; nothing to ingest."
+  If `raw/` is empty, also say: "No raw materials found. Either re-run
+  `/ingest-materials {target} <path-to-folder-or-file>` to copy materials
+  in from elsewhere, or place files directly in
+  `analyses/{slug}/00_deal_materials/raw/` (the path printed above) and
+  re-run `/ingest-materials {target}`."
+- **Otherwise**: the files on the `to-process:` line (paths relative to
+  `raw/`) are your entire work list. Don't re-process UNCHANGED files.
 
 ## Existing outputs
 
-Before writing anything, check whether `analyses/{slug}/00_deal_materials/materials_digest.md`
-and/or `analyses/{slug}/00_deal_materials/manifest.md` already exist (e.g. from
-a prior run, or hand-curated). If they exist, use the
-Read tool to read them first and **merge** — append new sections/rows for the
-newly-processed files rather than discarding existing content. Don't duplicate
-entries for files already covered.
+If `materials_digest.md` and/or `manifest.md` already exist (from a prior
+ingest, or hand-curated), use the Read tool to read them first and
+**merge**:
+
+- **NEW files:** append their digest sections and manifest rows.
+- **CHANGED files:** this is an updated version of a document already
+  covered. Replace that file's existing digest content and manifest rows
+  instead of appending, and delete its old exhibit images from
+  `exhibits/` before writing the new ones. Matching is by file name, so
+  look for the file's `Source` line and the manifest rows whose notes or
+  description cite it. Number new exhibits after the highest existing
+  number; don't renumber exhibits from other files.
+- **REMOVED files** (listed but not on `to-process:`): leave their content
+  in place and say so in your summary. Ben decides whether to drop it.
+- **UNCHANGED files:** leave their content exactly as it is.
+
+Every ingest ends the digest with a `## Ingestion log` table. Create it if
+missing, and append one row per file on `to-process:`, plus one per
+REMOVED file:
+
+| date | file | status |
+|---|---|---|
+| 2026-11-09 | deck.pdf | NEW |
+
+Keep it as the last section of the digest. Earlier rows are history:
+never edit or remove them.
 
 ## Your task
 
@@ -100,7 +86,8 @@ judge the content; that's the job of the Research Collector and advisors
 downstream. Be thorough: it's better to over-include in the digest than to
 drop context that later stages would need.
 
-For every file in `raw_dir`, classify each section/page/sheet as either
+For every file on Setup's `to-process:` line, classify each
+section/page/sheet as either
 **narrative** or **exhibit**:
 
 - **Narrative**: company overview, market framing, technology/strategy
@@ -191,6 +178,16 @@ Use paths relative to `analyses/{slug}/00_deal_materials/`.
 Write `materials_digest.md` and `manifest.md` to
 `analyses/{slug}/00_deal_materials/`, and exhibit images to
 `analyses/{slug}/00_deal_materials/exhibits/`.
+
+Once both files are written, record what was ingested so the next ingest
+can tell what's new:
+
+```
+python3 scripts/pipeline.py materials {slug} --commit
+```
+
+Run this only after a successful ingest. If you stopped early or failed,
+don't commit: the unprocessed files must still show as NEW next time.
 
 Return a brief summary: number of source files processed, number of digest
 sections written, number of exhibits extracted with their proposed routing

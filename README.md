@@ -130,9 +130,13 @@ SPV/legal docs), process them before running `/research`:
    automatically, and advisors consult `manifest.md` for exhibits routed to
    them
 
-See `projectplan.md` for the full digest +
-manifest design and the `[DATA ROOM]` evidence tag (note: per-stage
-manifest-reading by RC/advisors/Bear is still being rolled out).
+**New documents later.** Run `/ingest-materials "Company Name" <path>`
+again with the folder that holds the new or updated files. It processes
+only files that are new or whose contents changed, and says "nothing to
+ingest" if every file matches what it already has. An updated copy of an
+existing file replaces that file's digest sections and exhibits, and the
+old version is kept in `raw/.superseded/{date}/`. The digest's
+`## Ingestion log` table records what came in and when.
 
 ## Slug convention
 
