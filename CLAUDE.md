@@ -25,8 +25,14 @@ changes, see `projectplan.md`.
 | `/bear` | rc summary + advisor fulls + bull | `04_bear_full.md` |
 | `/executive` | rc summary + advisor summaries + bull + bear | `05_executive_report.md` |
 | `/run-analysis "Company" TYPE [source]` / `resume <slug>` | — (orchestrator) | `.run.json`; invokes every stage above in order |
+| `/compare-runs [company-or-slug] [base-snapshot]` | `history/<base>/` + current run (exec reports, advisor summaries, bull, bear) | `06_run_comparison_data.md` (from `scripts/compare_runs.py`), `06_run_comparison.md` |
+| `/rerun-analysis "Company" [docs-path] [--force] [--from <stage>]` | — (orchestrator) | snapshot to `history/`, then ingest? → research … executive → compare-runs |
 
-`/run-analysis` is the only skill that doesn't fork. It runs in the main
+`/run-analysis` and `/rerun-analysis` are the only skills that don't fork.
+`/rerun-analysis` refuses to spend anything when every supplied document is
+unchanged (unless `--force`), snapshots the previous run, and then drives
+the same loop as `/run-analysis` (it reads that skill's Rules and Steps 2-3)
+plus a final `compare` stage. It runs in the main
 session and launches each stage skill with the Skill tool, passing the slug
 explicitly, and does all bookkeeping through `scripts/pipeline.py`. For
 that reason the stage skills have `disable-model-invocation: false`, with a
@@ -50,6 +56,8 @@ and `scripts/migrate_exec_report.py` rendered a report from them.
 - Bull receives: advisor full outputs + RC summary
 - Bear receives: advisor full outputs + Bull full + RC summary
 - Executive receives: advisor summaries (not full) + Bull full + Bear full
+  (each advisor summary ends with a "Data room gaps (conclusion-material)"
+  block, so Executive and `/compare-runs` see gaps without reading fulls)
 - No stage reads `analyses/{slug}/history/` (previous-run snapshots) except
   RC, which gets the prior RC full on a re-run, and `/compare-runs`.
   Judgment stages must reach conclusions blind to the previous run's
@@ -115,6 +123,8 @@ analyses/
     03_bull_full.md
     04_bear_full.md
     05_executive_report.md
+    06_run_comparison_data.md   <- re-runs only: parsed diff vs. the base snapshot
+    06_run_comparison.md        <- re-runs only: attributed comparison (also a Notion sub-page)
     .meta
     .notion
     .run.json             <- one-shot run state (scripts/pipeline.py)
@@ -245,8 +255,8 @@ Examples: `Acme+` → `acme_plus`, `AT&T` → `at_and_t`, `Bright Energy` →
 ## Models
 
 - `claude-sonnet-5`: Science Advisor, Political Advisor, Bull, Notion Sync
-- `claude-opus-5`: Research, Investment Advisor, Bear, Executive, Ingest Materials
-- Run Analysis: no `model` pin. It runs in the main session on whatever model
+- `claude-opus-5`: Research, Investment Advisor, Bear, Executive, Ingest Materials, Compare Runs
+- Run Analysis / Rerun Analysis: no `model` pin. It runs in the main session on whatever model
   the session uses, and only does bookkeeping.
 
 Investment Advisor is intentionally pinned to opus rather than sonnet, unlike

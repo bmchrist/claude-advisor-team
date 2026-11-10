@@ -96,6 +96,14 @@ Otherwise: list each document type you wanted but didn't have, the specific clai
 
 (c) Evidence that would change your assessment:
 <specific and falsifiable>
+
+(d) Data room gaps (conclusion-material):
+Copy only the rows from your full output's "Data room gaps" section that you
+marked conclusion-material, one line each: the missing document, then the
+claim it would confirm or refute. Write `None conclusion-material` if there
+are none, or `N/A — No data room materials provided` if there was no
+manifest. This is a filter on what you already wrote, not new analysis.
+Executive's Next Actions and /compare-runs read it.
 [SUMMARY_END]
 
 ## Notion sync

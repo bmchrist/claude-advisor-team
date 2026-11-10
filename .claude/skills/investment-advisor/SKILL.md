@@ -114,6 +114,14 @@ round-size, instrument, or other price-relevant terms, state them here under a
 price-relevant conditions. The Executive stage sources its deal-terms &
 price-sensitivity paragraph from this block. Omit (d) entirely for non-DEAL
 analyses or when no price-relevant terms were ingested.
+
+(e) Data room gaps (conclusion-material):
+Copy only the rows from your full output's "Data room gaps" section that you
+marked conclusion-material, one line each: the missing document, then the
+claim it would confirm or refute. Write `None conclusion-material` if there
+are none, or `N/A — No data room materials provided` if there was no
+manifest. This is a filter on what you already wrote, not new analysis.
+Executive's Next Actions and /compare-runs read it.
 [SUMMARY_END]
 
 ## Notion sync

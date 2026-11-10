@@ -59,11 +59,21 @@ end the sync section:
 | 3 | `03_bull_full.md` | `[BULL_START]` / `[BULL_END]` | Stage 3: Bull Case | `stage3_page_id` |
 | 4 | `04_bear_full.md` | `[BEAR_START]` / `[BEAR_END]` | Stage 4: Bear Case | `stage4_page_id` |
 | 5 | `05_executive_report.md` | `[REPORT_START]` / `[REPORT_END]` | (main page) | `main_page_id` |
+| 6 | `06_run_comparison.md` | `[COMPARISON_START]` / `[COMPARISON_END]` | Run comparison: {base_date} → {head_date} | `compare_{YYYYMMDD}_page_id` |
 
 Stage 5 (Executive) has no sub-page. Its report body *is* the main page's
 content above `## Stage Reports`; see "Main-page push" below.
 `scripts/notion_body.py` parses this table for file names, delimiters,
 sub-page titles and `.notion` keys, so keep its column layout intact.
+
+Stage 6 (run comparison, re-runs only) is a sub-page like stages 1–4, but
+one is created per re-run, so its key and title are dated. The real values
+are in `06_run_comparison.md`'s frontmatter (`notion_key`, `notion_title`).
+When you record its page id, also record the title, so the main-page push
+can link the page:
+`python3 scripts/notion_state.py set {slug} <notion_key> <id> <notion_key minus _id>_title "<notion_title>"`.
+For example, `compare_20261201_page_id` is paired with
+`compare_20261201_page_title`.
 
 ## Procedure: Bootstrap main page (research / notion-sync only)
 
@@ -152,7 +162,8 @@ instructions. This procedure copies it and never rebuilds it.
 2. **Content.** Run `python3 scripts/notion_body.py {slug} executive`. Its
    output is the report body (frontmatter, H1 and markers stripped,
    escaped). It already ends with `## Stage Reports` and one `<page url>`
-   block per `stage*_page_id` in `.notion`, generated from state. Call
+   block per `stage*_page_id` in `.notion`, then one per run-comparison
+   page (`compare_*_page_id`), generated from state. Call
    `notion-update-page` with `page_id` = `main_page_id`,
    `command: replace_content`, `new_str` = that output **verbatim**. Don't
    edit it, add links from memory, or set `allow_deleting_content`. If
@@ -166,7 +177,7 @@ instructions. This procedure copies it and never rebuilds it.
    dangerous when a child `<page>` tag is omitted, and generating the tags
    from `.notion` removes that risk.)
 3. **Check the sub-pages.** `notion-fetch` the main page once and confirm
-   every `stage*_page_id` in `.notion` appears (dashes removed) in a
+   every `stage*_page_id` and `compare_*_page_id` in `.notion` appears (dashes removed) in a
    `<page url>` under `## Stage Reports`. If one is missing, report it: the
    page is recoverable from Notion's trash, and `/notion-sync` can re-push
    it. This check is the exception to "skip post-push verification reads"

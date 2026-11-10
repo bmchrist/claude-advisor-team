@@ -6,19 +6,22 @@ Usage:
   python3 scripts/notion_body.py <slug> executive --properties
 
   <stage> accepts the same values as /notion-sync: research|1, science|2a,
-  investment|2b, political|2c, bull|3, bear|4, executive|5.
+  investment|2b, political|2c, bull|3, bear|4, executive|5, compare|6.
 
 What it does (the one strip-and-escape path for every Notion push — see
 .claude/skills/notion-sync/REFERENCE.md):
   1. Reads the stage's local file (file name and delimiters come from
      REFERENCE.md's stage facts table, so that table stays the single source).
-  2. Strips the YAML frontmatter (executive), the first H1 title line, and
-     the stage's delimiter marker lines.
+  2. Strips any YAML frontmatter (executive, compare), the first H1 title
+     line, and the stage's delimiter marker lines.
   3. Applies the Notion escape rule (see escape_for_notion below).
   4. For executive only: appends `## Stage Reports`, its intro line, and one
      `<page url=...>` block per `stage*_page_id` in analyses/{slug}/.notion,
-     in stage order, so the child-page links are generated from state rather
-     than recalled. These tags are appended AFTER escaping.
+     in stage order, then one per run-comparison page
+     (`compare_YYYYMMDD[_n]_page_id`, titled by its `..._page_title`), so
+     the child-page links are generated from state rather than recalled. A
+     comparison page left out here would be deleted (or block the push) by
+     replace_content. These tags are appended AFTER escaping.
 
 With --properties (executive only): prints instead a JSON object of the
 main page's Notion properties built from the report's frontmatter: Grade,
@@ -46,6 +49,7 @@ ALIASES = {
     "bull": "3", "3": "3",
     "bear": "4", "4": "4",
     "executive": "5", "5": "5",
+    "compare": "6", "6": "6",
 }
 STAGE_ORDER = ["1", "2a", "2b", "2c", "3", "4"]
 STAGE_REPORTS_INTRO = "Full write-ups for each pipeline stage are linked as sub-pages below."
@@ -97,10 +101,8 @@ def strip_frontmatter(lines):
     return lines
 
 
-def strip_structure(text, start, end, is_exec):
-    lines = text.splitlines()
-    if is_exec:
-        lines = strip_frontmatter(lines)
+def strip_structure(text, start, end):
+    lines = strip_frontmatter(text.splitlines())
     out, h1_done = [], False
     for line in lines:
         s = line.strip()
@@ -161,6 +163,10 @@ def stage_reports_block(slug, facts):
             continue
         url = f"https://app.notion.com/p/{pid.replace('-', '')}"
         blocks += ["", f'<page url="{url}">', facts[st]["title"], "</page>"]
+    for key in sorted(k for k in notion if re.match(r"^compare_\w+_page_id$", k)):
+        url = f"https://app.notion.com/p/{notion[key].replace('-', '')}"
+        title = notion.get(key[:-len("_id")] + "_title") or "Run comparison"
+        blocks += ["", f'<page url="{url}">', title, "</page>"]
     return "\n".join(blocks)
 
 
@@ -227,7 +233,7 @@ def main():
         if omitted:
             print("OMITTED: " + ", ".join(omitted), file=sys.stderr)
         return
-    body = escape_for_notion(strip_structure(text, f["start"], f["end"], is_exec))
+    body = escape_for_notion(strip_structure(text, f["start"], f["end"]))
     if is_exec:
         body = body + "\n\n" + stage_reports_block(slug, facts)
     sys.stdout.write(body + "\n")

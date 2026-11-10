@@ -49,6 +49,7 @@ commands and act on what they print.
 | bull | `bull` | `<slug>` |
 | bear | `bear` | `<slug>` |
 | executive | `executive` | `<slug>` |
+| compare | `compare-runs` | `<slug> <snapshot>` (re-runs only; snapshot is `prior_run.snapshot` in `.run.json`) |
 | notion-catchup | `notion-sync` | `<slug>` (see step 3) |
 
 ## Setup

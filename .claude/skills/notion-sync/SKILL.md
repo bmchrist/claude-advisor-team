@@ -13,7 +13,8 @@ arguments: target stage
 
 `$stage` (optional) names a single stage to sync. Accepted values
 (case-insensitive): `research` / `1`, `science` / `2a`, `investment` / `2b`,
-`political` / `2c`, `bull` / `3`, `bear` / `4`, `executive` / `5`.
+`political` / `2c`, `bull` / `3`, `bear` / `4`, `executive` / `5`,
+`compare` / `6`.
 If `$stage` is empty, sync all stages.
 
 Edge case: if `$target` is itself a stage keyword and `$stage` is empty, treat
@@ -54,7 +55,7 @@ Build the work list — the exact set of items you will attempt:
 
 | stage_filter | Work list |
 |---|---|
-| `all` | bootstrap + stages 1, 2a, 2b, 2c, 3, 4 + executive |
+| `all` | bootstrap + stages 1, 2a, 2b, 2c, 3, 4 + comparison + executive |
 | `executive` or `5` | bootstrap + executive only |
 | `research` or `1` | bootstrap + stage 1 only |
 | `science` or `2a` | bootstrap + stage 2a only |
@@ -62,6 +63,7 @@ Build the work list — the exact set of items you will attempt:
 | `political` or `2c` | bootstrap + stage 2c only |
 | `bull` or `3` | bootstrap + stage 3 only |
 | `bear` or `4` | bootstrap + stage 4 only |
+| `compare` or `6` | bootstrap + comparison only |
 
 Every item **not** on the work list must appear in the output table as
 `skipped — stage filter active`. Do not call any Notion tool for those items.
@@ -86,6 +88,15 @@ For each stage on the work list (1, 2a, 2b, 2c, 3, 4 — not executive):
 follow REFERENCE.md's "Stage sub-page push" procedure if the file exists,
 or mark `skipped — no local file` if it does not.
 
+### Step 2b — Run comparison
+
+If the comparison is on the work list and `analyses/{slug}/06_run_comparison.md`
+exists, read its frontmatter for `notion_key` and `notion_title`. Then
+follow REFERENCE.md's "Stage sub-page push" for stage 6, using that key
+and title. Record the page id and title per REFERENCE.md's stage 6 note.
+If the file doesn't exist, mark `skipped — no local file`. Only the latest
+comparison is local. Earlier ones are already in Notion.
+
 ### Step 3 — Executive sync
 
 If `executive` is on the work list and
@@ -100,7 +111,7 @@ created in Step 2 is already in `.notion` and gets linked.
 ## Output
 
 Report a table with one row per item attempted (bootstrap/main page, stages
-1/2a/2b/2c/3/4, executive), each marked `created`, `updated`,
+1/2a/2b/2c/3/4, comparison, executive), each marked `created`, `updated`,
 `skipped — no local file`, `skipped — stage filter active`, or
 `error: <message>`.
 

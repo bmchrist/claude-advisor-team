@@ -35,12 +35,47 @@ from the repo root.
   `analyses/<slug>/.run.json`, and `python3 scripts/pipeline.py status
   <slug>` shows it.
 - **Existing analyses:** `/run-analysis` refuses a company that already
-  has an analysis (re-runs are `/rerun-analysis`, coming soon). It also
-  refuses a path given in place of the company name.
+  has an analysis (use `/rerun-analysis`, below). It also refuses a path
+  given in place of the company name.
 - **Materials:** they're ingested and used straight away, with no pause to
   review `manifest.md` routing. If you want to review routing first, run
   `/ingest-materials` by hand and then use the stage-by-stage commands
   below.
+
+### Re-running when new documents arrive
+
+```
+/rerun-analysis "Company Name" [new-docs-path] [--force] [--from <stage>]
+```
+
+- **With a path:** it first checks whether any file is new or changed.
+  If every file matches what was already ingested, it stops with "nothing
+  to re-run" before spending anything. Pass `--force` to re-run anyway.
+- **Without a path:** it's a public-research refresh with the existing
+  materials.
+- **Before overwriting anything,** the previous run is archived to
+  `analyses/<slug>/history/<date>_<reason>/`. Then the pipeline re-runs:
+  ingest (new or changed files only), research, the three advisors in
+  parallel, bull, bear, executive.
+- **Research** reads the previous briefing, re-verifies its headline
+  facts, and tags anything new `[NEW SINCE <date>]`. Every later stage
+  judges from scratch, without seeing the previous verdict.
+- **It ends with `/compare-runs`,** which writes `06_run_comparison.md`
+  and a Notion sub-page with:
+  - the old verdict → new verdict
+  - what the new documents contained
+  - every earlier open question marked answered, partially answered or
+    still open
+  - each score movement tagged `NEW EVIDENCE`, `PIPELINE CHANGE` or
+    `UNEXPLAINED`
+- **Run-to-run noise:** the pipeline isn't deterministic, so an
+  unexplained ±1 move is flagged as possible noise.
+- **`--from <stage>`** re-runs only that stage and the ones after it, for
+  example after editing Bear's prompt. It can't be combined with new
+  documents.
+- **Comparing by hand:** `/compare-runs "Company" [snapshot]` compares
+  the current run against any snapshot in `history/` (the newest by
+  default).
 
 ### Stage by stage
 

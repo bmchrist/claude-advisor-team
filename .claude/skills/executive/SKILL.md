@@ -285,6 +285,9 @@ greenwashing signals, currency-repatriation risk, etc.) as an extra line.
 
 2-3 concrete next actions. Not "do more research" — specific asks like
 "request the technical whitepaper" or "schedule reference call with X customer."
+Check the advisors' "Data room gaps (conclusion-material)" summary blocks
+first: a gap that more than one advisor flags, or one tied to the crux, is
+usually the best first ask.
 
 ## Output instructions
 

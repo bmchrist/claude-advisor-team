@@ -76,9 +76,21 @@ Subcommands:
       `to-process:` (the NEW/CHANGED files, relative to raw/) or
       `to-process: none`.
 
+  rerun-init <company-or-slug> [--source <path>] [--force] [--from <stage>]
+      Start a re-run of an existing analysis (for /rerun-analysis). Refuses
+      unless the analysis has a completed run (.meta and
+      05_executive_report.md) and no unfinished run. With --source,
+      classifies the documents before copying anything and stops with
+      `stop: no new or changed documents` unless --force. New documents
+      require re-running from research. Then snapshots the current run
+      (reason new-materials, refresh with no --source, or manual when
+      forced) and writes a fresh .run.json marked as a re-run: ingest (only
+      if documents are new or changed), stages from --from (default
+      research) through executive, compare, notion-catchup.
+
 Stage graph:
   ingest? -> research -> {science, investment, political} -> bull -> bear
-  -> executive -> notion-catchup
+  -> executive -> compare (re-runs only) -> notion-catchup
 """
 import datetime
 import glob
@@ -134,13 +146,20 @@ STAGES = {
     "executive": (["bear"], [
         ("05_executive_report.md", "[REPORT_START]", "[REPORT_END]"),
     ], ["main_page_id"]),
-    "notion-catchup": (["executive"], [], []),
+    # re-runs only: compare this run against the snapshot it replaced. Its
+    # Notion key is dated (compare_YYYYMMDD_page_id), so it has no fixed key.
+    "compare": (["executive"], [
+        ("06_run_comparison.md", "[COMPARISON_START]", "[COMPARISON_END]"),
+    ], []),
+    "notion-catchup": (["executive", "compare"], [], []),
 }
 ORDER = list(STAGES)
 # skill invoked for each stage (for the orchestrator)
 SKILL = {"ingest": "ingest-materials", "research": "research", "science": "science",
          "investment": "investment-advisor", "political": "political", "bull": "bull",
-         "bear": "bear", "executive": "executive", "notion-catchup": "notion-sync"}
+         "bear": "bear", "executive": "executive", "compare": "compare-runs",
+         "notion-catchup": "notion-sync"}
+RERUN_FROM = ["research", "science", "investment", "political", "bull", "bear", "executive"]
 # the .notion keys every stage page needs, for notion-catchup's check
 ALL_NOTION_KEYS = ["main_page_id", "stage1_page_id", "stage2a_page_id", "stage2b_page_id",
                    "stage2c_page_id", "stage3_page_id", "stage4_page_id"]
@@ -366,16 +385,17 @@ def cmd_materials(slug, source=None, copy=False, commit=False):
 SNAPSHOT_REASONS = {"initial", "new-materials", "refresh", "manual"}
 
 
-def cmd_snapshot(slug, reason):
+def cmd_snapshot(slug, reason, quiet=False):
     if reason not in SNAPSHOT_REASONS:
         fail(f"reason must be one of: {', '.join(sorted(SNAPSHOT_REASONS))}")
     d = adir(slug)
     if not os.path.isdir(d):
         fail(f"no analysis directory analyses/{slug}")
-    outputs = sorted(f for f in os.listdir(d) if re.match(r"^0[1-5][a-c]?_.*\.(md|json)$", f))
+    outputs = sorted(f for f in os.listdir(d) if re.match(r"^0[1-6][a-c]?_.*\.(md|json)$", f))
     if not outputs:
-        out(snapshot="none")
-        return
+        if not quiet:
+            out(snapshot="none")
+        return None
     name = f"{datetime.datetime.now().strftime('%Y-%m-%d_%H%M')}_{reason}"
     dest = os.path.join(d, "history", name)
     n = 2
@@ -412,8 +432,10 @@ def cmd_snapshot(slug, reason):
     with open(os.path.join(dest, "snapshot.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
         f.write("\n")
-    out(snapshot=os.path.relpath(dest, ROOT), files=len(copied),
-        fingerprint="recorded" if meta["fingerprint"] else "none (pre-pipeline run)")
+    if not quiet:
+        out(snapshot=os.path.relpath(dest, ROOT), files=len(copied),
+            fingerprint="recorded" if meta["fingerprint"] else "none (pre-pipeline run)")
+    return os.path.basename(dest)
 
 
 # --- validation --------------------------------------------------------------
@@ -564,7 +586,7 @@ def preflight(company, type_, source=None, quiet=False):
 def cmd_init(company, type_, source=None):
     slug, company, t, src, warnings = preflight(company, type_, source, quiet=True)
     os.makedirs(adir(slug), exist_ok=True)
-    stages = [s for s in ORDER if s != "ingest" or src]
+    stages = [s for s in ORDER if (s != "ingest" or src) and s != "compare"]
     run = {
         "slug": slug, "company": company, "type": t, "source": src,
         "mode": "run", "rerun_in_progress": False, "prior_run": None,
@@ -588,6 +610,82 @@ def deps_done(run, stage):
     return True
 
 
+def finish_rerun(slug, run):
+    # once the run is done, research must no longer see a "prior run"
+    if run.get("rerun_in_progress"):
+        run["rerun_in_progress"] = False
+        save_run(slug, run)
+
+
+def cmd_rerun_init(target, source=None, force=False, from_stage="research"):
+    if from_stage not in RERUN_FROM:
+        fail(f"--from must be one of: {', '.join(RERUN_FROM)}")
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "resolve_target.py"),
+                        "--slug-only", target], cwd=ROOT, capture_output=True, text=True)
+    lines = r.stdout.strip().splitlines()
+    err = [l for l in lines if l.startswith("ERROR:")]
+    if err:
+        print(err[0])
+        sys.exit(0)
+    slug = next((l.split(":", 1)[1].strip() for l in lines if l.startswith("slug:")), None)
+    d = adir(slug or "")
+    if not slug or not os.path.exists(os.path.join(d, ".meta")):
+        fail(f"no analysis found for '{target}' (expected analyses/{slug}/.meta). "
+             f"Start a new one with /run-analysis")
+    meta = read_kv(os.path.join(d, ".meta"))
+    run = load_run(slug, required=False)
+    if run and any(i["status"] != "complete" for i in run["stages"].values()):
+        fail(f"analyses/{slug} has an unfinished run. Use /run-analysis resume {slug} first")
+    if not os.path.exists(os.path.join(d, "05_executive_report.md")):
+        hint = (" (legacy JSON found: run python3 scripts/migrate_exec_report.py " + slug + ")"
+                if os.path.exists(os.path.join(d, "05_executive_data.json")) else "")
+        fail(f"analyses/{slug} has no 05_executive_report.md, so there's no completed run "
+             f"to compare against{hint}")
+
+    todo, src = [], None
+    if source:
+        src = os.path.abspath(os.path.expanduser(source))
+        if not os.path.exists(src):
+            fail(f"documents path does not exist: {src}")
+        current = hash_tree(src)
+        if not current:
+            fail(f"documents path has no files: {src}")
+        recorded, _ = ingested_record(slug)
+        res = classify(current, recorded, full_set=False)
+        for st in ("NEW", "CHANGED"):
+            for rel in res[st]:
+                print(f"{st}: {rel}")
+        out(materials=" ".join(f"{k.lower()}={len(v)}" for k, v in res.items() if k != "REMOVED"))
+        todo = res["NEW"] + res["CHANGED"]
+        if not todo and not force:
+            out(stop="no new or changed documents; nothing to re-run (pass --force to re-run anyway)")
+            return
+    if todo and from_stage != "research":
+        fail(f"new documents only reach the analysis through research; drop --from {from_stage}")
+
+    reason = "new-materials" if todo else ("manual" if force else "refresh")
+    snap = cmd_snapshot(slug, reason, quiet=True)
+    if not snap:
+        fail(f"nothing to snapshot in analyses/{slug}")
+    i = ORDER.index(from_stage)
+    stages = (["ingest"] if todo else []) + [s for s in ORDER[i:] if s != "ingest"]
+    new_run = {
+        "slug": slug, "company": meta.get("company", slug), "type": meta.get("type", ""),
+        "source": src if todo else None,
+        "mode": "rerun", "rerun_in_progress": from_stage == "research",
+        "prior_run": {"snapshot": snap}, "from_stage": from_stage,
+        "created": now_iso(),
+        "stages": {s: {"status": "pending", "attempts": 0, "started": None,
+                       "started_epoch": None, "finished": None, "finished_epoch": None}
+                   for s in stages},
+        "materials": {},
+        "fingerprint": fingerprint(),
+    }
+    save_run(slug, new_run)
+    out(slug=slug, company=new_run["company"], type=new_run["type"], reason=reason,
+        snapshot=snap, source=new_run["source"] or "none", stages=" ".join(stages))
+
+
 def cmd_next(slug):
     run = load_run(slug)
     st = run["stages"]
@@ -603,10 +701,12 @@ def cmd_next(slug):
         elif info["status"] in ("pending", "failed") and deps_done(run, s):
             ready.append(s)
     if all(i["status"] == "complete" for i in st.values()):
+        finish_rerun(slug, run)
         out(ready="none", done="true", notion="synced")
         return
     if blocked == ["notion-catchup"] and all(
             i["status"] == "complete" for k, i in st.items() if k != "notion-catchup"):
+        finish_rerun(slug, run)
         out(ready="none", done="true", notion="incomplete")
         print("WARNING: analysis complete, but Notion catch-up failed. Run /notion-sync "
               f"{slug} to retry; the local files are the source of truth")
@@ -709,7 +809,9 @@ def cmd_status(slug):
         stages = list(run["stages"])
     else:
         has_mat = os.path.isdir(os.path.join(adir(slug), "00_deal_materials"))
-        stages = [s for s in ORDER if s != "notion-catchup" and (s != "ingest" or has_mat)]
+        has_cmp = os.path.exists(os.path.join(adir(slug), "06_run_comparison.md"))
+        stages = [s for s in ORDER if s != "notion-catchup" and (s != "ingest" or has_mat)
+                  and (s != "compare" or has_cmp)]
     print(f"{'stage':15} {'run':10} {'tries':5} {'files':10} {'notion':7} time")
     for s in stages:
         info = run["stages"][s] if run else {}
@@ -745,7 +847,7 @@ def main():
     a = sys.argv[1:]
     if not a:
         fail("usage: pipeline.py preflight|init|next|start|finish|check|reconcile|status|root|"
-             "snapshot|materials|prior-run ...")
+             "snapshot|materials|rerun-init|prior-run ...")
     cmd, rest = a[0], a[1:]
     if cmd == "preflight" and len(rest) in (2, 3):
         preflight(*rest)
@@ -778,6 +880,23 @@ def main():
         if unknown:
             fail(f"unknown materials flag(s): {' '.join(unknown)}")
         cmd_materials(slug, source, "--copy" in flags, "--commit" in flags)
+    elif cmd == "rerun-init" and rest:
+        target, flags = rest[0], rest[1:]
+        source, from_stage = None, "research"
+        for opt in ("--source", "--from"):
+            if opt in flags:
+                i = flags.index(opt)
+                if i + 1 >= len(flags):
+                    fail(f"{opt} needs a value")
+                if opt == "--source":
+                    source = flags[i + 1]
+                else:
+                    from_stage = flags[i + 1]
+                del flags[i:i + 2]
+        unknown = [f for f in flags if f != "--force"]
+        if unknown:
+            fail(f"unknown rerun-init argument(s): {' '.join(unknown)}")
+        cmd_rerun_init(target, source, "--force" in flags, from_stage)
     elif cmd == "root" and not rest:
         out(root=ROOT)
     elif cmd == "prior-run" and len(rest) == 1:
