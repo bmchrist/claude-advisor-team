@@ -111,7 +111,9 @@ Executive's Next Actions and /compare-runs read it.
 See `.claude/skills/notion-sync/REFERENCE.md` for full conventions
 (skip/failure wording, performance notes).
 
-Follow REFERENCE.md's "Stage sub-page push" procedure for Stage 2c: file
+Run `python3 scripts/notion_push.py {slug} political` and handle its output
+per REFERENCE.md's "Scripted push". Only if it prints `MODE: mcp`, follow
+REFERENCE.md's "Stage sub-page push" procedure for Stage 2c: file
 `02c_political_advisor_full.md`, delimiters `[ANALYSIS_START]`/`[ANALYSIS_END]`,
 title "Stage 2c: Political & Regulatory Risk Analysis", `.notion` key `stage2c_page_id`.
 

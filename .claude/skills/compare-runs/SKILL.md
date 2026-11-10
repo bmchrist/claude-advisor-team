@@ -137,8 +137,16 @@ Write plain markdown, with `$` as `$`. Escaping happens at push time.
 
 ## Notion sync
 
-Follow `.claude/skills/notion-sync/REFERENCE.md`: run its Preconditions,
-then its "Stage sub-page push" procedure for stage 6. Run
+Run `python3 scripts/notion_push.py {slug} compare executive` and handle its
+output per `.claude/skills/notion-sync/REFERENCE.md`'s "Scripted push". It
+pushes the comparison page (key and title from `06_run_comparison.md`'s
+frontmatter), records both keys, then re-pushes the main page so it links
+the new page. If the `executive` line reports an error, name
+`/notion-sync {slug} executive` as the fix.
+
+Only if it prints `MODE: mcp`, do the following instead. Run
+REFERENCE.md's Preconditions, then its "Stage sub-page push" procedure for
+stage 6. Run
 `python3 scripts/notion_body.py {slug} compare` for the payload. Use
 `notion_key` as the `.notion` key: if `.notion` already has it (a re-run
 compared on the same day), update that page instead of creating one. Use

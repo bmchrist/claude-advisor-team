@@ -192,12 +192,16 @@ Use the slug shown in Setup to construct the exact file paths.
 ## Notion sync
 
 See `.claude/skills/notion-sync/REFERENCE.md` for full conventions
-(skip/failure wording, performance notes). If `analyses/{slug}/.notion` is
-missing `main_page_id`, follow REFERENCE.md's "Bootstrap main page"
-procedure first (company = `$company`, slug/type from Setup above), then
-continue.
+(skip/failure wording, performance notes).
 
-Follow REFERENCE.md's "Stage sub-page push" procedure for Stage 1: file
+Run `python3 scripts/notion_push.py {slug} research` and handle its output
+per REFERENCE.md's "Scripted push". It bootstraps the main page itself if
+`.notion` has no `main_page_id`.
+
+Only if it prints `MODE: mcp`: if `analyses/{slug}/.notion` is missing
+`main_page_id`, follow REFERENCE.md's "Bootstrap main page" procedure first
+(company = `$company`, slug/type from Setup above), then follow its "Stage
+sub-page push" procedure for Stage 1: file
 `01_research_collector_full.md`, delimiters `[RC_FULL_START]`/`[RC_FULL_END]`,
 title "Stage 1: Research Collector Briefing", `.notion` key `stage1_page_id`.
 

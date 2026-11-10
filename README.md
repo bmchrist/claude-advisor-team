@@ -140,6 +140,32 @@ page per company, with sub-pages for each stage). If a stage reports that
 Notion sync didn't happen, run `/notion-sync` to catch up without re-running
 the analysis. See `CLAUDE.md`'s "Notion sync" section for setup.
 
+### Faster Notion sync (optional)
+
+By default each stage pushes to Notion through the Notion MCP server, which
+means the model types every page out again: about 5 minutes and 40-60k
+output tokens per analysis. With a Notion API token, `scripts/notion_push.py`
+sends the same pages directly in a few seconds each. Without a token,
+everything keeps using the MCP, so this is optional. One-time setup:
+
+1. At https://www.notion.so/profile/integrations, create an internal
+   integration with **Read content**, **Update content** and **Insert
+   content**. Copy its secret.
+2. In Notion, open the **Investments** page → ⋯ → **Connections** and add
+   the integration. That shares the database and every analysis page under
+   it.
+3. Store the secret in the macOS Keychain (it prompts, so the secret stays
+   out of your shell history):
+   ```
+   security add-generic-password -a "$USER" -s notion-pipeline -w
+   ```
+   Or set `NOTION_TOKEN` in your environment instead.
+4. Check it: `python3 scripts/notion_push.py --check`
+
+You can also push by hand: `python3 scripts/notion_push.py <slug> all` (or
+name stages, e.g. `bear executive`). Add `--dry-run` to see the requests
+without sending anything.
+
 ## Adding deal materials (data rooms, pitch decks, etc.)
 
 If you have non-public materials for a deal (pitch deck, financial model,

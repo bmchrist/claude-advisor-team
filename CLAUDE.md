@@ -198,11 +198,15 @@ content.
 
 ### Prerequisite
 
-Requires a Notion MCP server configured under the name `notion` (e.g.
+Every push first runs `scripts/notion_push.py`, which uses the Notion REST
+API when an API token is configured (`NOTION_TOKEN`, or the Keychain item
+`notion-pipeline`; setup in README.md's "Faster Notion sync"). It's fast
+and the payload never passes through the model. Without a working token it
+prints `MODE: mcp`, and the skill falls back to a Notion MCP server
+configured under the name `notion` (e.g.
 `claude mcp add --transport http notion https://mcp.notion.com/mcp`),
 exposing `notion-create-pages` / `notion-update-page` / `notion-fetch`. If
-`mcp__notion__*` tools aren't present, skills note this per REFERENCE.md's
-skip wording.
+neither is available, skills note this per REFERENCE.md's skip wording.
 
 ### Database
 

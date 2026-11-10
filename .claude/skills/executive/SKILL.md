@@ -386,8 +386,10 @@ Don't write `## Stage Reports` into the file. The push generates it from
 
 ## Notion sync
 
-Follow `.claude/skills/notion-sync/REFERENCE.md`: run its Preconditions,
-then its "Main-page push" procedure using `05_executive_report.md`
+Run `python3 scripts/notion_push.py {slug} executive` and handle its output
+per `.claude/skills/notion-sync/REFERENCE.md`'s "Scripted push". Only if it
+prints `MODE: mcp`, follow REFERENCE.md's MCP fallback: run its
+Preconditions, then its "Main-page push" procedure using `05_executive_report.md`
 (properties from the frontmatter, content from
 `python3 scripts/notion_body.py {slug} executive`, then the sub-page check).
 Skip/failure wording is also in REFERENCE.md.

@@ -3,9 +3,12 @@
 Canonical procedures for mirroring pipeline outputs to Notion. Every
 pipeline skill's `## Notion sync` section (except `/ingest-materials`,
 which doesn't sync) points here instead of repeating this content. See
-`CLAUDE.md`'s "Notion sync" section for the MCP prerequisite and database
+`CLAUDE.md`'s "Notion sync" section for the prerequisites and database
 schema; this file covers the *procedures*, canonical wording, and the
 stage-facts table.
+
+Every sync starts with "Scripted push" below. The MCP procedures after it
+are the fallback, used only when the script says `MODE: mcp`.
 
 ## Writing `.notion`
 
@@ -16,6 +19,40 @@ id. Every write goes through
 `python3 scripts/notion_state.py set {slug} <key> <value> [<key> <value> ...]`,
 which takes an `fcntl` lock and replaces the file atomically. Reading the
 file directly is fine.
+
+## Procedure: Scripted push (always first)
+
+Run `python3 scripts/notion_push.py {slug} <stage> [<stage> ...]` with the
+stage(s) your skill names (same values as `notion_body.py`: `research`,
+`science`, `investment`, `political`, `bull`, `bear`, `executive`,
+`compare`, or `all`). It pushes through the Notion REST API: payloads from
+`notion_body.py` (same strip and escape rules), page ids recorded through
+`notion_state.py`, the main page bootstrapped when `research` or `all` runs
+without one (`--bootstrap` allows it for any stage), the run-comparison
+key/title handled from `06_run_comparison.md`'s frontmatter, and the
+main-page sub-page check done after `executive`. It takes seconds, and the
+payload never passes through your context.
+
+Read its output:
+
+- **`MODE: mcp`** (exit 3): no API token is configured, or the token can't
+  reach the database. Follow the MCP fallback below (Preconditions onward)
+  for the same stage(s). If a `WARNING:` line came with it, repeat it in
+  your summary. Without a `WARNING:` line, don't mention the fallback.
+- **Anything else** means the API path ran. Don't call any Notion MCP tool
+  afterwards, even on failure: a second push through the MCP can create a
+  duplicate page. Report the lines:
+  - `created: …` / `updated: …`: success.
+  - `skipped: <stage> — no main_page_id yet …`: use the no-`main_page_id`
+    skip wording below.
+  - `skipped: <stage> — no local file`: say so.
+  - `error: <stage> — <message>` or a line starting `ERROR:`: use the
+    failure wording below with that message.
+  - `OMITTED: …`: executive properties left out as `n/a`. Note them.
+  - `Notion: <url>`: the summary line below.
+
+The API token is optional and set up once; see README.md's "Faster Notion
+sync". `python3 scripts/notion_push.py --check` reports whether it works.
 
 ## Skip / failure wording (canonical)
 
@@ -32,6 +69,12 @@ stages:
   failed: <error> — run /notion-sync to retry." Never fail silently and
   never block on this — the local markdown outputs remain the source of
   truth.
+
+## MCP fallback
+
+Everything from here to "Summary line" applies only after the scripted
+push printed `MODE: mcp`, except the stage facts table and the escaping
+rules, which `notion_body.py` uses on both paths.
 
 ## Preconditions (check before any procedure below)
 
@@ -192,13 +235,17 @@ skipped or failed (use the skip/failure wording above instead).
 
 ## Performance notes
 
-- Push time scales with block count, not file content size — long single
+- The scripted push takes a few seconds per page. The MCP fallback costs
+  about 2.5–3 seconds per 1,000 characters of payload, because the model
+  types the whole payload back out (about 5 minutes and 40–60k output
+  tokens per full analysis).
+- MCP fallback: push time scales with block count, not file content size — long single
   paragraphs push faster than the same word count split across many list
   items or table rows.
 - Push pages one at a time; don't try to batch multiple pages into one
   `notion-create-pages` call, so a failure on one page doesn't affect
   others.
-- On automated/scheduled runs, skip post-push verification reads
+- MCP fallback, automated/scheduled runs: skip post-push verification reads
   (`notion-fetch` to confirm content landed) — they roughly double sync
   time for negligible benefit. Verify manually only when debugging a sync
   issue.

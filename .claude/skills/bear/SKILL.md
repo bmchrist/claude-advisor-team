@@ -100,7 +100,9 @@ Review the `## Data room gaps` sections in each advisor full output you read abo
 See `.claude/skills/notion-sync/REFERENCE.md` for full conventions
 (skip/failure wording, performance notes).
 
-Follow REFERENCE.md's "Stage sub-page push" procedure for Stage 4: file
+Run `python3 scripts/notion_push.py {slug} bear` and handle its output
+per REFERENCE.md's "Scripted push". Only if it prints `MODE: mcp`, follow
+REFERENCE.md's "Stage sub-page push" procedure for Stage 4: file
 `04_bear_full.md`, delimiters `[BEAR_START]`/`[BEAR_END]`, title "Stage 4:
 Bear Case", `.notion` key `stage4_page_id`.
 

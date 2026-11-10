@@ -73,7 +73,9 @@ Read the slug from the current analysis above. Write one file:
 See `.claude/skills/notion-sync/REFERENCE.md` for full conventions
 (skip/failure wording, performance notes).
 
-Follow REFERENCE.md's "Stage sub-page push" procedure for Stage 3: file
+Run `python3 scripts/notion_push.py {slug} bull` and handle its output
+per REFERENCE.md's "Scripted push". Only if it prints `MODE: mcp`, follow
+REFERENCE.md's "Stage sub-page push" procedure for Stage 3: file
 `03_bull_full.md`, delimiters `[BULL_START]`/`[BULL_END]`, title "Stage 3:
 Bull Case", `.notion` key `stage3_page_id`.
 

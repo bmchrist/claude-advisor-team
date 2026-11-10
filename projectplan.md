@@ -15,6 +15,12 @@ the three advisors, `/bull`, `/bear`, `/executive`, plus the
 
 See `implementation_plan_2026-11-09_notion_api.md`.
 
+- [ ] Get rid of the MCP push to simplify the code once we know the API
+      works (after a few real runs go through `notion_push.py` cleanly).
+      Drops REFERENCE.md's MCP fallback procedures, the `MODE: mcp`
+      branches in every skill's Notion section, and the `mcp__notion__*`
+      entries in each skill's `allowed-tools`.
+
 ### 2. Analysis coverage additions
 
 Six areas the analyses should cover explicitly. Today each is either

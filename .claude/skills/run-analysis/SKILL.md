@@ -111,8 +111,11 @@ When `next` lists `notion-catchup`, run
 - **`check: complete`**: every stage page and the main page are recorded
   in `.notion`. Run `start` then `finish … ok` for `notion-catchup`
   without invoking anything.
-- **Otherwise**: run `start`, invoke `notion-sync` with `<slug>` once, and
-  on its notification run `finish … ok`. It gets one attempt. If it still
+- **Otherwise**: run `start`, then
+  `python3 scripts/notion_push.py <slug> all`. If it exits 0, run
+  `finish … ok` (finish re-checks `.notion`). If it printed `MODE: mcp`
+  or failed, invoke `notion-sync` with `<slug>` once instead, and on its
+  notification run `finish … ok`. It gets one attempt. If it still
   fails, `next` reports `done: true` with `notion: incomplete`, which is a
   warning, not a pipeline failure.
 

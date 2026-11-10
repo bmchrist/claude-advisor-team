@@ -55,9 +55,12 @@ STAGE_ORDER = ["1", "2a", "2b", "2c", "3", "4"]
 STAGE_REPORTS_INTRO = "Full write-ups for each pipeline stage are linked as sub-pages below."
 
 
+class BodyError(Exception):
+    """Raised for any payload-building failure; the CLI prints it as `ERROR:`."""
+
+
 def fail(msg):
-    print(f"ERROR: {msg}")
-    sys.exit(1)
+    raise BodyError(msg)
 
 
 def load_stage_facts():
@@ -187,7 +190,12 @@ def parse_frontmatter(text):
     fail("report frontmatter is not closed with ---")
 
 
-def properties(text):
+def properties(text, escape=True):
+    """Main-page properties from the report frontmatter, in the MCP's flat form.
+
+    escape=False leaves `Grade driver` as plain text, for the REST API, where
+    property values are rich text rather than Notion-flavored markdown.
+    """
     fm = parse_frontmatter(text)
     mapping = [
         ("Grade", "grade"),
@@ -203,40 +211,74 @@ def properties(text):
         if v in ("", "n/a"):
             omitted.append(prop)
             continue
-        props[prop] = _escape_text(v) if prop == "Grade driver" else v
+        props[prop] = _escape_text(v) if (escape and prop == "Grade driver") else v
     if "date:Analysis Date:start" in props:
         props["date:Analysis Date:is_datetime"] = 0
     return props, omitted
 
 
+def resolve_stage(stage_arg):
+    """Map a stage name or number to its stage-facts key ("1".."6")."""
+    stage = ALIASES.get(stage_arg.lower())
+    if not stage:
+        fail(f"unknown stage '{stage_arg}' (expected one of: {', '.join(sorted(set(ALIASES)))})")
+    return stage
+
+
+def stage_path(slug, stage, facts=None):
+    facts = facts or load_stage_facts()
+    return os.path.join(ROOT, "analyses", slug, facts[stage]["file"])
+
+
+def read_stage_file(slug, stage, facts):
+    path = stage_path(slug, stage, facts)
+    if not os.path.exists(path):
+        fail(f"{path} not found")
+    return open(path, encoding="utf-8").read()
+
+
+def build_payload(slug, stage, facts=None):
+    """The exact push payload `notion_body.py <slug> <stage>` prints (without
+    the trailing newline)."""
+    facts = facts or load_stage_facts()
+    f = facts[stage]
+    text = read_stage_file(slug, stage, facts)
+    body = escape_for_notion(strip_structure(text, f["start"], f["end"]))
+    if stage == "5":
+        body = body + "\n\n" + stage_reports_block(slug, facts)
+    return body
+
+
+def build_properties(slug, escape=True, facts=None):
+    """(props, omitted) for the main page, from 05_executive_report.md."""
+    facts = facts or load_stage_facts()
+    return properties(read_stage_file(slug, "5", facts), escape=escape)
+
+
 def main():
+    try:
+        _main()
+    except BodyError as e:
+        print(f"ERROR: {e}")
+        sys.exit(1)
+
+
+def _main():
     args = [a for a in sys.argv[1:] if a != "--properties"]
     want_props = "--properties" in sys.argv[1:]
     if len(args) != 2:
         fail("usage: notion_body.py <slug> <stage> [--properties]")
-    slug, stage_arg = args[0], args[1].lower()
-    stage = ALIASES.get(stage_arg)
-    if not stage:
-        fail(f"unknown stage '{args[1]}' (expected one of: {', '.join(sorted(set(ALIASES)))})")
+    slug, stage = args[0], resolve_stage(args[1])
     facts = load_stage_facts()
-    f = facts[stage]
-    path = os.path.join(ROOT, "analyses", slug, f["file"])
-    if not os.path.exists(path):
-        fail(f"{path} not found")
-    text = open(path, encoding="utf-8").read()
-    is_exec = stage == "5"
     if want_props:
-        if not is_exec:
+        if stage != "5":
             fail("--properties is only valid for the executive stage")
-        props, omitted = properties(text)
+        props, omitted = build_properties(slug, facts=facts)
         print(json.dumps(props, ensure_ascii=False, indent=2))
         if omitted:
             print("OMITTED: " + ", ".join(omitted), file=sys.stderr)
         return
-    body = escape_for_notion(strip_structure(text, f["start"], f["end"]))
-    if is_exec:
-        body = body + "\n\n" + stage_reports_block(slug, facts)
-    sys.stdout.write(body + "\n")
+    sys.stdout.write(build_payload(slug, stage, facts) + "\n")
 
 
 if __name__ == "__main__":

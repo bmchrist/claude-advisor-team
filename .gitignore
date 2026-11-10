@@ -2,3 +2,4 @@ analyses/*
 
 # Archived planning docs
 docs/archive/
+__pycache__/

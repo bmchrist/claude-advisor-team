@@ -129,7 +129,9 @@ Executive's Next Actions and /compare-runs read it.
 See `.claude/skills/notion-sync/REFERENCE.md` for full conventions
 (skip/failure wording, performance notes).
 
-Follow REFERENCE.md's "Stage sub-page push" procedure for Stage 2b: file
+Run `python3 scripts/notion_push.py {slug} investment` and handle its output
+per REFERENCE.md's "Scripted push". Only if it prints `MODE: mcp`, follow
+REFERENCE.md's "Stage sub-page push" procedure for Stage 2b: file
 `02b_investment_advisor_full.md`, delimiters `[ANALYSIS_START]`/`[ANALYSIS_END]`,
 title "Stage 2b: Investment Advisor Assessment", `.notion` key `stage2b_page_id`.
 

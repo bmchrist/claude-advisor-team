@@ -34,10 +34,11 @@ If Setup printed an ERROR line, stop and report it to Ben verbatim.
 
 ## Prerequisite
 
-If `mcp__notion__*` tools aren't available, stop here and report: "Notion
-sync unavailable — the `notion` MCP server isn't configured. See CLAUDE.md's
-'Notion sync' section, then re-run /notion-sync." Don't attempt any of the
-steps below.
+Only on the MCP path (after the scripted push in Step 0b printed
+`MODE: mcp`): if `mcp__notion__*` tools aren't available, stop and report:
+"Notion sync unavailable — no Notion API token, and the `notion` MCP server
+isn't configured. See README.md's 'Faster Notion sync' or CLAUDE.md's
+'Notion sync' section, then re-run /notion-sync."
 
 ## Your task
 
@@ -67,6 +68,24 @@ Build the work list — the exact set of items you will attempt:
 
 Every item **not** on the work list must appear in the output table as
 `skipped — stage filter active`. Do not call any Notion tool for those items.
+
+### Step 0b — scripted push
+
+Run, with `--bootstrap` so a missing main page is created whatever the
+filter:
+
+```
+python3 scripts/notion_push.py {slug} <all, or the filter's stage name> --bootstrap
+```
+
+Unless it printed `MODE: mcp`, build the Output table from its lines
+(`created` / `updated` / `skipped — …` / `error: …`; items not on the work
+list are `skipped — stage filter active`) and stop: don't run Steps 1–3 or
+call any Notion MCP tool. An `ERROR: main page … is unreachable` line
+replaces the table: report it as is.
+
+If it printed `MODE: mcp`, check the Prerequisite above, then run Steps
+1–3 through the MCP. Repeat any `WARNING:` line in the summary.
 
 ### Step 1 — Bootstrap / verify main page
 
